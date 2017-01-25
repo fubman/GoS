@@ -2,8 +2,6 @@ class "Blitzcrank"
 
 require('DamageLib')
 
-local _shadow = myHero.pos
-
 function Blitzcrank:__init()
     if myHero.charName ~= "Blitzcrank" then return end
     PrintChat("[Retarded] Blitzcrank - Loaded....")
@@ -69,7 +67,7 @@ function Blitzcrank:LoadMenu()
 end
 --[[Update]]
 function Blitzcrank:Tick()
- local target = self:GetTarget(925)
+ local target = self:GetTarget(2000)
     if self:Mode() == "Combo" then
         self:Combo()
     elseif self:Mode() == "Harass" then
@@ -82,7 +80,7 @@ function Blitzcrank:Tick()
 end
 --[[Combo]]
 function Blitzcrank:Combo(target)
-local target = self:GetTarget(925)
+local target = self:GetTarget(2000)
     if target then 
     if self.Menu.Combo.ComboQ:Value() and self.Menu.Combo.WhiteListQ[target.charName]:Value() then
     self:CastQ(target)   
@@ -95,7 +93,7 @@ local target = self:GetTarget(925)
 end
 --[[Harass]]
 function Blitzcrank:Harass()
-local target = self:GetTarget(925)
+local target = self:GetTarget(2000)
 
     if target then 
     if self.Menu.Harass.HarassQ:Value() and self.Menu.Harass.WhiteListQ[target.charName]:Value() and (myHero.mana/myHero.maxMana >= self.Menu.Harass.HarassMana:Value()/100) then
@@ -117,7 +115,7 @@ function Blitzcrank:LastHit()
 end
 
 function Blitzcrank:CastQ(target)
-    local target = self:GetTarget(925)
+    local target = self:GetTarget(2000)
     if target and self.IsReady(_Q) and self:IsValidTarget(target, Q.range, false, myHero.pos) then
     local qTarget = self:GetTarget(Q.Range * self.Menu.Misc.MaxRange:Value())
     if qTarget and target:GetCollision(Q.range) == 0 then
@@ -134,7 +132,7 @@ function Blitzcrank:CastW(target)
 end
 
 function Blitzcrank:CastE(target)
-    local target = self:GetTarget(240)
+    local target = self:GetTarget(2000)
     if target then
     local eTarget = self:GetTarget(E.range)
         if eTarget then 
