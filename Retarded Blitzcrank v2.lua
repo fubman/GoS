@@ -48,7 +48,7 @@ function Blitzcrank:LoadMenu()
     self.Menu.Harass:MenuElement({id = "HarassQ", name = "Use Q", value = true})
     self.Menu.Harass:MenuElement({id = "HarassE", name = "Use E", value = true})
     self.Menu.Harass:MenuElement({id = "AutoHarass", name = "Auto Harass", value = false})
-    self.Menu.Harass:MenuElement({id = "HarassToggle", name = "Harass Toggle",key = string.byte("H"),toggle = false})
+    self.Menu.Harass:MenuElement({id = "HarassToggle", name = "Harass Toggle", key = string.byte("H"), toggle = true})
     self.Menu.Harass:MenuElement({type = MENU, name = "WhiteList", id = "WhiteListQ", tooltip = "Grab only activated Targets!"})
     for K, Enemy in pairs(self:GetEnemyHeroes()) do
     self.Menu.Harass.WhiteListQ:MenuElement({name = Enemy.charName, id = Enemy.charName, value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/6.24.1/img/champion/"..Enemy.charName..".png"})
