@@ -324,7 +324,7 @@ function Blitzcrank:Draw()
 
     local textPos = myHero.pos:To2D()
     Draw.Text("Q Range: "..tostring(Q.Range * self.Menu.Misc.MaxRange:Value()).."", 15, textPos.x + 60, textPos.y - 10, Draw.Color(255, 255, 0, 10))
-    Draw.Text("Harass: "..tostring(Q.Range * self.Menu.Misc.MaxRange:Value()).."", 15, textPos.x + 60, textPos.y + 5, Draw.Color(255, 255, 0, 10))
+    Draw.Text("Harass: "..tostring(self.Menu.Harass.HarassToggle:Value()).."", 15, textPos.x + 60, textPos.y + 5, Draw.Color(255, 255, 0, 10))
    --[[Draw Damage]]
    --[[
     if self.Menu.Draw.DrawDamage:Value() then
