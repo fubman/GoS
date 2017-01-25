@@ -10,12 +10,12 @@ function Blitzcrank:__init()
     Callback.Add("Tick", function() self:Tick() end)
     Callback.Add("Draw", function() self:Draw() end)
 end
-
+--[[Spells]]
 function Blitzcrank:LoadSpells()
-    Q = {Range = 925, Delay = 0.25, Radius = 0, Speed = 1750, Collision = true}
-    W = {Range = 0, Delay = 0, Radius = 0, Speed = 0}
-    E = {Range = 240, Delay = 0.25, Radius = 0, Speed = 0}
-    R = {Range = 600, Delay = 0, Radius = 0, Speed = 0}
+    Q = {Range = 925, width = nil, Delay = 0.25, Radius = 0, Speed = 1750, Collision = true, aoe = false, type = "linear"}
+    W = {Range = nil, width = nil, Delay = 0.25, Radius = 0, Speed = 0, Collision = false, aoe = false, type = "linear"}
+    E = {Range = 240, width = nil, Delay = 0.25, Radius = 0, Speed = 200, Collision = false, aoe = false, type = "circular"}
+    R = {Range = 600, width = 200, Delay = 0.25, Radius = 0, Speed = 0, Collision = false, aoe = true, type = "circular"}
 end
 --[[Menu Icons]]
 local Icons = {
@@ -47,11 +47,22 @@ function Blitzcrank:LoadMenu()
     self.Menu:MenuElement({type = MENU, id = "Harass", name = "Harass Settings"})
     self.Menu.Harass:MenuElement({id = "HarassQ", name = "Use Q", value = true})
     self.Menu.Harass:MenuElement({id = "HarassE", name = "Use E", value = true})
+    self.Menu.Harass:MenuElement({id = "HarassToggle", name = "Harass Toggle", key = string.byte("H"), toggle = true})
     self.Menu.Harass:MenuElement({type = MENU, name = "WhiteList", id = "WhiteListQ", tooltip = "Grab only activated Targets!"})
     for K, Enemy in pairs(self:GetEnemyHeroes()) do
     self.Menu.Harass.WhiteListQ:MenuElement({name = Enemy.charName, id = Enemy.charName, value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/6.24.1/img/champion/"..Enemy.charName..".png"})
     end
     self.Menu.Harass:MenuElement({id = "HarassMana", name = "Min. Mana", value = 25, min = 0, max = 100, tooltip = "Default is 25%."})
+
+    --[[KillSteal]]
+    self.Menu:MenuElement({type = MENU, id = "KillSteal", name = "KillSteal Settings"})
+    self.Menu.KillSteal:MenuElement({id = "KillStealQ", name = "Use Q", value = true})
+    self.Menu.KillSteal:MenuElement({id = "KillStealR", name = "Use R", value = false})
+    if myHero:GetSpellData(4).name == "SummonerDot" or myHero:GetSpellData(5).name == "SummonerDot" then
+    self.Menu.KillSteal:MenuElement({id = "KillStealIgnite", name = "Use Ignite", value = false})
+    end
+    self.Menu.KillSteal:MenuElement({id = "Recall", name = "Disable During Recall", value = true})
+    self.Menu.KillSteal:MenuElement({id = "Disabled", name = "Disable All", value = false})
 
     --[[Misc]]
     self.Menu:MenuElement({type = MENU, id = "Misc", name = "Misc Settings"})
@@ -64,18 +75,19 @@ function Blitzcrank:LoadMenu()
     self.Menu.Draw:MenuElement({id = "DrawQ", name = "Draw Q Range", value = true})
     self.Menu.Draw:MenuElement({id = "DrawE", name = "Draw E Range", value = true})
     self.Menu.Draw:MenuElement({id = "DrawR", name = "Draw R Range", value = true})
+    self.Menu.Draw:MenuElement({id = "DrawDamage", name = "Draw Damage", value = true})
 end
 --[[Update]]
 function Blitzcrank:Tick()
- local target = self:GetTarget(2000)
-    if self:Mode() == "Combo" then
-        self:Combo()
-    elseif self:Mode() == "Harass" then
+    if myHero.dead then return end
+        local target = self:GetTarget(2000)
+            --self:KillSteal()
+            self:AutoHarass()
+                 if EOW:Mode() == "Combo" then
+                  self:Combo()
+                end
+            if EOW:Mode() == "Harass" then
         self:Harass()
-    elseif self:Mode() == "Farm" then
-        self:Farm()
-    elseif self:Mode() == "LastHit" then
-        self:LastHit()
     end
 end
 --[[Combo]]
@@ -106,20 +118,28 @@ local target = self:GetTarget(2000)
     end
 end
 
-function Blitzcrank:Farm()
-
-end
-
-function Blitzcrank:LastHit()
-
+--[[Auto Harass]]
+function Blitzcrank:AutoHarass(target)
+    local target = self:GetTarget(2000)
+    if target then 
+        if self.Menu.Harass.HarassQ:Value() then
+        if self.Menu.Harass.HarassToggle:Value() and myHero.mana > self.Menu.Harass.HarassMana:Value() then
+                for _, Enemy in pairs(self:GetEnemyHeroes()) do
+                        if self.Menu.Harass.WhiteListQ[target.charName]:Value() then
+                                self:CastQ(target) 
+                    end
+                end
+            end
+        end
+    end
 end
 
 function Blitzcrank:CastQ(target)
     local target = self:GetTarget(2000)
-    if target and self.IsReady(_Q) and self:IsValidTarget(target, Q.range, false, myHero.pos) then
+    if target and self.IsReady(_Q) and self:IsValidTarget(target, Q.Range, false, myHero.pos) then
     local qTarget = self:GetTarget(Q.Range * self.Menu.Misc.MaxRange:Value())
-    if qTarget and target:GetCollision(Q.range) == 0 then
-    local castPos = target:GetPrediction(Q.delay)
+    if qTarget and target:GetCollision(Q.Range) == 0 then
+    local castPos = target:GetPrediction(Q.Delay)
     Control.CastSpell(HK_Q, castPos)
         end
     end
@@ -133,8 +153,8 @@ end
 
 function Blitzcrank:CastE(target)
     local target = self:GetTarget(2000)
-    if target then
-    local eTarget = self:GetTarget(E.range)
+    if target --[[and self.IsReady(_E) and self:IsValidTarget(target, E.Range, false, myHero.pos)]] then
+    local eTarget = self:GetTarget(E.Range)
         if eTarget then 
             Control.CastSpell(HK_E)
     end
@@ -142,8 +162,12 @@ function Blitzcrank:CastE(target)
 end
 
 function Blitzcrank:CastR(target)
-    if target then
-        Control.CastSpell(HK_R, target)
+    local target = self:GetTarget(2000)
+    if target and self.IsReady(_R) and self:IsValidTarget(target, R.Range, false, myHero.pos) then
+    local rTarget = self:GetTarget(R.Range)
+        if rTarget then 
+            Control.CastSpell(HK_R)
+        end
     end
 end
 
@@ -173,25 +197,14 @@ function Blitzcrank:Draw()
     end
 
     local textPos = myHero.pos:To2D()
-    Draw.Text("Q Range: "..tostring(Q.Range * self.Menu.Misc.MaxRange:Value()).."", 15, textPos.x + 60, textPos.y - 10, Draw.Color(255, 255, 0, 10))
+    Draw.Text("Q Range: "..tostring(Q.Range * self.Menu.Misc.MaxRange:Value()).."", 20, textPos.x + 180, textPos.y - 10, Draw.Color(255, 255, 0, 10))
+    --Draw.Text("Harass: "..tostring(self.Menu.Harass.HarassToggle:Value()).."", 20, textPos.x + 60, textPos.y + 5, Draw.Color(255, 255, 0, 10))
 
-
-
+    if self.Menu.Harass.HarassToggle:Value() == true then
+    return Draw.Text("Harass Toggle: On", 20, textPos.x + 180, textPos.y + 5, Draw.Color(255, 255, 0, 10))
+    else
+     Draw.Text("Harass Toggle: Off", 20, textPos.x + 180, textPos.y + 5, Draw.Color(255, 255, 0, 10))
 end
-
-
-
-function Blitzcrank:Mode()
-    if Orbwalker["Combo"].__active then
-        return "Combo"
-    elseif Orbwalker["Harass"].__active then
-        return "Harass"
-    elseif Orbwalker["Farm"].__active then
-        return "Farm"
-    elseif Orbwalker["LastHit"].__active then
-        return "LastHit"
-    end
-    return ""
 end
 
 function Blitzcrank:GetEnemyHeroes()
@@ -268,7 +281,6 @@ function Blitzcrank:GetBuffs(unit)
     return self.T
 end
 
-
 function Blitzcrank:GetBuffData(unit, buffname)
     for i = 0, unit.buffCount do
         local Buff = unit:GetBuff(i)
@@ -277,6 +289,15 @@ function Blitzcrank:GetBuffData(unit, buffname)
         end
     end
     return {type = 0, name = "", startTime = 0, expireTime = 0, duration = 0, stacks = 0, count = 0}
+end
+
+function Blitzcrank:IsRecalling()
+    for K, Buff in pairs(self:GetBuffs(myHero)) do
+        if Buff.name == "recall" and Buff.duration > 0 then
+            return true
+        end
+    end
+    return false
 end
 
 function Blitzcrank:IsReady(spellSlot)
