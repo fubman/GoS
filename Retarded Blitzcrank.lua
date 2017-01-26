@@ -192,27 +192,28 @@ end
 
 function Blitzcrank:KsQR(target)
     for K, Enemy in pairs(self:GetEnemyHeroes()) do
-        if self:IsValidTarget(Enemy, R.range, false, myHero.pos) and Enemy.pos:DistanceTo(target.pos) < Q.range then
-            self:CastR(Enemy) return 
+        if self:IsValidTarget(Enemy, Q.range, false, myHero.pos) and Enemy.pos:DistanceTo(target.pos) < R.range then
+            self:CastQ(Enemy) return 
         end
     end
 end
 
 function Blitzcrank:KillSteal()
+ 
     if self.Menu.KillSteal.Disabled:Value() or (self:IsRecalling() and self.Menu.KillSteal.Recall:Value()) then return end
     for K, Enemy in pairs(self:GetEnemyHeroes()) do
-
+   --[[                         PrintChat(""..tostring(getdmg("Q", Enemy, myHero) + getdmg("R", Enemy, myHero)).."")             ]]
         if self.Menu.KillSteal.KillStealQ:Value() and self.Menu.KillSteal.KillStealR:Value() and self:IsReady(_Q) and self:IsReady(_R) and self:IsValidTarget(Enemy, Q.Range + R.Range, false, myHero.pos) then
-            if getdmg("Q", Enemy, myHero) > Enemy.health then 
+            if getdmg("Q", Enemy, myHero) + getdmg("R", Enemy, myHero) > Enemy.health then 
                 self:KsQR(Enemy)
             end
         end
         if self.Menu.KillSteal.KillStealQ:Value() and self.Menu.KillSteal.KillStealE:Value() and self:IsReady(_Q) and self:IsReady(_E) and self:IsValidTarget(Enemy, Q.Range + E.Range, false, myHero.pos) then
-            if getdmg("Q", Enemy, myHero) > Enemy.health then
+            if getdmg("Q + E", Enemy, myHero) + getdmg("E", Enemy, myHero) > Enemy.health then
                 self:KsQE(Enemy)
             end
         end
-        
+
         if self.Menu.KillSteal.KillStealQ:Value() and self:IsReady(_Q) and self:IsValidTarget(Enemy, Q.Range, false, myHero.pos) then
             if getdmg("Q", Enemy, myHero) > Enemy.health then
                 self:CastQ(Enemy)
