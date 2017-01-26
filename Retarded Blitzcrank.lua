@@ -47,7 +47,7 @@ function Blitzcrank:LoadMenu()
     self.Menu:MenuElement({type = MENU, id = "Harass", name = "Harass Settings"})
     self.Menu.Harass:MenuElement({id = "HarassQ", name = "Use Q", value = true})
     self.Menu.Harass:MenuElement({id = "HarassE", name = "Use E", value = true})
-    self.Menu.Harass:MenuElement({id = "HarassToggle", name = "Harass Toggle", value = false})
+    self.Menu.Harass:MenuElement({id = "AutoHarass", name = "Harass Toggle", value = false})
     --[[self.Menu.Harass:MenuElement({id = "HarassToggle", name = "Harass Toggle", key = string.byte("H"), toggle = true})]]
     self.Menu.Harass:MenuElement({type = MENU, name = "WhiteList", id = "WhiteListQ", tooltip = "Grab only activated Targets!"})
     for K, Enemy in pairs(self:GetEnemyHeroes()) do
@@ -124,7 +124,7 @@ function Blitzcrank:AutoHarass(target)
     local target = self:GetTarget(2000)
     if target then 
         if self.Menu.Harass.HarassQ:Value() then
-        if self.Menu.Harass.HarassToggle:Value() and myHero.mana > self.Menu.Harass.HarassMana:Value() then
+        if self.Menu.Harass.AutoHarass:Value() and myHero.mana > self.Menu.Harass.HarassMana:Value() then
                 for _, Enemy in pairs(self:GetEnemyHeroes()) do
                         if self.Menu.Harass.WhiteListQ[target.charName]:Value() then
                                 self:CastQ(target) 
@@ -201,7 +201,7 @@ function Blitzcrank:Draw()
     Draw.Text("Q Range: "..tostring(Q.Range * self.Menu.Misc.MaxRange:Value()).."", 20, textPos.x + 180, textPos.y - 10, Draw.Color(255, 255, 0, 10))
     --Draw.Text("Harass: "..tostring(self.Menu.Harass.HarassToggle:Value()).."", 20, textPos.x + 60, textPos.y + 5, Draw.Color(255, 255, 0, 10))
 
-    if self.Menu.Harass.HarassToggle:Value() == true then
+    if self.Menu.Harass.AutoHarass:Value() == true then
     return Draw.Text("Harass Toggle: On", 20, textPos.x + 180, textPos.y + 5, Draw.Color(255, 255, 0, 10))
     else
      Draw.Text("Harass Toggle: Off", 20, textPos.x + 180, textPos.y + 5, Draw.Color(255, 255, 0, 10))
