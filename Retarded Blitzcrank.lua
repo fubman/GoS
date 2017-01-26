@@ -202,19 +202,25 @@ function Blitzcrank:KillSteal()
     if self.Menu.KillSteal.Disabled:Value() or (self:IsRecalling() and self.Menu.KillSteal.Recall:Value()) then return end
     for K, Enemy in pairs(self:GetEnemyHeroes()) do
 
-        if self.Menu.KillSteal.KillStealQ:Value() and self.Menu.KillSteal.KillStealR:Value() and self:IsReady(_Q) and self:IsReady(_R) and self:IsValidTarget(Enemy, Q.range + R.range, false, myHero.pos) then
+        if self.Menu.KillSteal.KillStealQ:Value() and self.Menu.KillSteal.KillStealR:Value() and self:IsReady(_Q) and self:IsReady(_R) and self:IsValidTarget(Enemy, Q.Range + R.Range, false, myHero.pos) then
             if getdmg("Q", Enemy, myHero) > Enemy.health then 
                 self:KsQR(Enemy)
             end
         end
-        if self.Menu.KillSteal.KillStealQ:Value() and self.Menu.KillSteal.KillStealE:Value() and self:IsReady(_Q) and self:IsReady(_E) and self:IsValidTarget(Enemy, Q.range + E.range, false, myHero.pos) then
+        if self.Menu.KillSteal.KillStealQ:Value() and self.Menu.KillSteal.KillStealE:Value() and self:IsReady(_Q) and self:IsReady(_E) and self:IsValidTarget(Enemy, Q.Range + E.Range, false, myHero.pos) then
             if getdmg("Q", Enemy, myHero) > Enemy.health then
                 self:KsQE(Enemy)
             end
         end
-        if self.Menu.KillSteal.KillStealQ:Value() and self:IsReady(_Q) and self:IsValidTarget(Enemy, Q.range, false, myHero.pos) then
+        
+        if self.Menu.KillSteal.KillStealQ:Value() and self:IsReady(_Q) and self:IsValidTarget(Enemy, Q.Range, false, myHero.pos) then
             if getdmg("Q", Enemy, myHero) > Enemy.health then
                 self:CastQ(Enemy)
+            end
+        end
+                if self.Menu.KillSteal.KillStealR:Value() and self:IsReady(_R) and self:IsValidTarget(Enemy, R.Range, false, myHero.pos) then
+            if getdmg("R", Enemy, myHero) > Enemy.health then
+                self:CastR(Enemy)
             end
         end
         if myHero:GetSpellData(5).name == "SummonerDot" and self.Menu.KillSteal.KillStealIgnite:Value() and self:IsReady(SUMMONER_2) then
