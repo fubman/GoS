@@ -108,6 +108,8 @@ local target = self:GetTarget(925)
     if self.Menu.Combo.ComboE:Value() and self:IsReady(_E) then
     self:CastE(target)   
         end
+
+        --[[only if Q + E is on CD]]
    if self.Menu.Combo.ComboR:Value() and self:GetEnemyCount() >= self.Menu.Combo.ComboMinR:Value() and self:IsReady(_R) then
         self:CastR()
         end
@@ -209,7 +211,7 @@ function Blitzcrank:KillSteal()
             end
         end
         if self.Menu.KillSteal.KillStealQ:Value() and self.Menu.KillSteal.KillStealE:Value() and self:IsReady(_Q) and self:IsReady(_E) and self:IsValidTarget(Enemy, Q.Range + E.Range, false, myHero.pos) then
-            if getdmg("Q + E", Enemy, myHero) + getdmg("E", Enemy, myHero) > Enemy.health then
+            if getdmg("Q", Enemy, myHero) + getdmg("E", Enemy, myHero) > Enemy.health then
                 self:KsQE(Enemy)
             end
         end
