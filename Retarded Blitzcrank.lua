@@ -47,7 +47,8 @@ function Blitzcrank:LoadMenu()
     self.Menu:MenuElement({type = MENU, id = "Harass", name = "Harass Settings"})
     self.Menu.Harass:MenuElement({id = "HarassQ", name = "Use Q", value = true})
     self.Menu.Harass:MenuElement({id = "HarassE", name = "Use E", value = true})
-    self.Menu.Harass:MenuElement({id = "HarassToggle", name = "Harass Toggle", key = string.byte("H"), toggle = true})
+    self.Menu.Harass:MenuElement({id = "HarassToggle", name = "Harass Toggle", value = false})
+    --[[self.Menu.Harass:MenuElement({id = "HarassToggle", name = "Harass Toggle", key = string.byte("H"), toggle = true})]]
     self.Menu.Harass:MenuElement({type = MENU, name = "WhiteList", id = "WhiteListQ", tooltip = "Grab only activated Targets!"})
     for K, Enemy in pairs(self:GetEnemyHeroes()) do
     self.Menu.Harass.WhiteListQ:MenuElement({name = Enemy.charName, id = Enemy.charName, value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/6.24.1/img/champion/"..Enemy.charName..".png"})
@@ -136,7 +137,7 @@ end
 
 function Blitzcrank:CastQ(target)
     local target = self:GetTarget(2000)
-    if target and self.IsReady(_Q) and self:IsValidTarget(target, Q.Range, false, myHero.pos) then
+    if target and self:CanCast(_Q) and self:IsValidTarget(target, Q.Range, false, myHero.pos) then
     local qTarget = self:GetTarget(Q.Range * self.Menu.Misc.MaxRange:Value())
     if qTarget and target:GetCollision(Q.Range) == 0 then
     local castPos = target:GetPrediction(Q.Delay)
