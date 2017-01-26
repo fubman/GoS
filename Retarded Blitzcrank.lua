@@ -38,6 +38,8 @@ function Blitzcrank:LoadMenu()
     self.Menu:MenuElement({type = MENU, id = "Combo", name = "Combo Settings"})
     self.Menu.Combo:MenuElement({id = "ComboQ", name = "Use Q", value = true})
     self.Menu.Combo:MenuElement({id = "ComboE", name = "Use E", value = true})
+    self.Menu.Combo:MenuElement({id = "ComboR", name = "Use R", value = true})
+    self.Menu.Combo:MenuElement({id = "ComboMinR", name = "Min. Targets to R", value = 2, min = 1, max = 5})
     self.Menu.Combo:MenuElement({type = MENU, name = "WhiteList", id = "WhiteListQ", tooltip = "Grab only activated Targets!"})
     for K, Enemy in pairs(self:GetEnemyHeroes()) do
     self.Menu.Combo.WhiteListQ:MenuElement({name = Enemy.charName, id = Enemy.charName, value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/6.24.1/img/champion/"..Enemy.charName..".png"})
@@ -58,7 +60,8 @@ function Blitzcrank:LoadMenu()
     --[[KillSteal]]
     self.Menu:MenuElement({type = MENU, id = "KillSteal", name = "KillSteal Settings"})
     self.Menu.KillSteal:MenuElement({id = "KillStealQ", name = "Use Q", value = true})
-    self.Menu.KillSteal:MenuElement({id = "KillStealR", name = "Use R", value = false})
+    self.Menu.KillSteal:MenuElement({id = "KillStealE", name = "Use E", value = true})
+    self.Menu.KillSteal:MenuElement({id = "KillStealR", name = "Use R", value = true})
     if myHero:GetSpellData(4).name == "SummonerDot" or myHero:GetSpellData(5).name == "SummonerDot" then
     self.Menu.KillSteal:MenuElement({id = "KillStealIgnite", name = "Use Ignite", value = false})
     end
@@ -67,6 +70,8 @@ function Blitzcrank:LoadMenu()
 
     --[[Misc]]
     self.Menu:MenuElement({type = MENU, id = "Misc", name = "Misc Settings"})
+    self.Menu.Misc:MenuElement({id = "MiscAutoR", name = "Auto R", value = false})
+    self.Menu.Misc:MenuElement({id = "MiscMinR", name = "Min. Targets to Auto R", value = 3, min = 1, max = 5})
     --[[self.Menu.Misc:MenuElement({id = "FlashQ", name = "Flash Q", key = string.byte("T"), tooltip = "", value = false})]]
     self.Menu.Misc:MenuElement({id = "MaxRange", name = "Q Range Limiter", value = 1, min = 0.26, max = 1, step = 0.01, tooltip = "Adjust your Q Range! Recommend = 0.88"})
     self.Menu.Misc:MenuElement({type = SPACE, id = "ToolTip", name = "Min Q.Range = 240 - Max Q.Range = 925", tooltip = "Adjust your Q Range! Recommend = 0.88"})
@@ -82,7 +87,7 @@ end
 --[[Update]]
 function Blitzcrank:Tick()
     if myHero.dead then return end
-        local target = self:GetTarget(2000)
+        local target = self:GetTarget(925)
             self:KillSteal()
             self:AutoHarass()
                  if EOW:Mode() == "Combo" then
@@ -94,20 +99,23 @@ function Blitzcrank:Tick()
 end
 --[[Combo]]
 function Blitzcrank:Combo(target)
-local target = self:GetTarget(2000)
+local target = self:GetTarget(925)
     if target then 
-    if self.Menu.Combo.ComboQ:Value() and self.Menu.Combo.WhiteListQ[target.charName]:Value() then
+    if self.Menu.Combo.ComboQ:Value() and self.Menu.Combo.WhiteListQ[target.charName]:Value() and self:IsReady(_Q) then
     self:CastQ(target)   
     end
     
-    if self.Menu.Combo.ComboE:Value() then
+    if self.Menu.Combo.ComboE:Value() and self:IsReady(_E) then
     self:CastE(target)   
+        end
+   if self.Menu.Combo.ComboR:Value() and self:GetEnemyCount() >= self.Menu.Combo.ComboMinR:Value() and self:IsReady(_R) then
+        self:CastR()
         end
     end
 end
 --[[Harass]]
 function Blitzcrank:Harass()
-local target = self:GetTarget(2000)
+local target = self:GetTarget(925)
 
     if target then 
     if self.Menu.Harass.HarassQ:Value() and self.Menu.Harass.WhiteListQ[target.charName]:Value() and (myHero.mana/myHero.maxMana >= self.Menu.Harass.HarassMana:Value()/100) then
@@ -122,7 +130,7 @@ end
 
 --[[Auto Harass]]
 function Blitzcrank:AutoHarass(target)
-    local target = self:GetTarget(2000)
+    local target = self:GetTarget(925)
     if target then 
         if self.Menu.Harass.HarassQ:Value() then
         if self.Menu.Harass.AutoHarass:Value() and myHero.mana > self.Menu.Harass.HarassMana:Value() then
@@ -147,7 +155,7 @@ function Blitzcrank:CastQ(target)
     end
 end
 
-function Blitzcrank:CastW(target)
+function Blitzcrank:CastW()
     if target then
         Control.CastSpell(HK_W, position)
     end
@@ -173,21 +181,43 @@ function Blitzcrank:CastR(target)
     end
 end
 
+function Blitzcrank:KsQE(target)
+    for K, Enemy in pairs(self:GetEnemyHeroes()) do
+        if self:IsValidTarget(Enemy, E.range, false, myHero.pos) and Enemy.pos:DistanceTo(target.pos) < Q.range then
+            self:CastE(Enemy) return 
+        end
+    end
+end
+
+
+function Blitzcrank:KsQR(target)
+    for K, Enemy in pairs(self:GetEnemyHeroes()) do
+        if self:IsValidTarget(Enemy, R.range, false, myHero.pos) and Enemy.pos:DistanceTo(target.pos) < Q.range then
+            self:CastR(Enemy) return 
+        end
+    end
+end
 
 function Blitzcrank:KillSteal()
     if self.Menu.KillSteal.Disabled:Value() or (self:IsRecalling() and self.Menu.KillSteal.Recall:Value()) then return end
     for K, Enemy in pairs(self:GetEnemyHeroes()) do
+
+        if self.Menu.KillSteal.KillStealQ:Value() and self.Menu.KillSteal.KillStealR:Value() and self:IsReady(_Q) and self:IsReady(_R) and self:IsValidTarget(Enemy, Q.range + R.range, false, myHero.pos) then
+            if getdmg("Q", Enemy, myHero) > Enemy.health then 
+                self:KsQR(Enemy)
+            end
+        end
+        if self.Menu.KillSteal.KillStealQ:Value() and self.Menu.KillSteal.KillStealE:Value() and self:IsReady(_Q) and self:IsReady(_E) and self:IsValidTarget(Enemy, Q.range + E.range, false, myHero.pos) then
+            if getdmg("Q", Enemy, myHero) > Enemy.health then
+                self:KsQE(Enemy)
+            end
+        end
         if self.Menu.KillSteal.KillStealQ:Value() and self:IsReady(_Q) and self:IsValidTarget(Enemy, Q.range, false, myHero.pos) then
             if getdmg("Q", Enemy, myHero) > Enemy.health then
-                self:CastQ()
+                self:CastQ(Enemy)
             end
         end
-        if self.Menu.KillSteal.KillStealR:Value() and self:IsReady(_R) and self:IsValidTarget(Enemy, R.range, false, myHero.pos) then
-            if getdmg("R", Enemy, myHero) > Enemy.health then
-                self:CastR()
-            end
-        end
-    if myHero:GetSpellData(5).name == "SummonerDot" and self.Menu.KillSteal.KillStealIgnite:Value() and self:IsReady(SUMMONER_2) then
+        if myHero:GetSpellData(5).name == "SummonerDot" and self.Menu.KillSteal.KillStealIgnite:Value() and self:IsReady(SUMMONER_2) then
             if self:IsValidTarget(Enemy, 600, false, myHero.pos) and Enemy.health + Enemy.hpRegen*2.5 + Enemy.shieldAD < 50 + 20*myHero.levelData.lvl then
                 Control.CastSpell(HK_SUMMONER_2, Enemy)
             end
@@ -235,6 +265,17 @@ function Blitzcrank:Draw()
     else
      Draw.Text("Harass Toggle: Off", 20, textPos.x + 180, textPos.y + 5, Draw.Color(255, 255, 0, 10))
 end
+end
+
+function Blitzcrank:GetEnemyCount(range)
+    local count = 0
+    for i=1,Game.HeroCount() do
+        local hero = Game.Hero(i)
+        if hero.team ~= myHero.team then
+            count = count + 1
+        end
+    end
+    return count
 end
 
 function Blitzcrank:GetEnemyHeroes()
