@@ -67,6 +67,7 @@ function Blitzcrank:LoadMenu()
 
     --[[Misc]]
     self.Menu:MenuElement({type = MENU, id = "Misc", name = "Misc Settings"})
+    self.Menu.Misc:MenuElement({id = "FlashQ", name = "Flash Q", key = string.byte("T"), tooltip = "", value = false})
     self.Menu.Misc:MenuElement({id = "MaxRange", name = "Q Range Limiter", value = 1, min = 0.26, max = 1, step = 0.01, tooltip = "Adjust your Q Range! Recommend = 0.88"})
     self.Menu.Misc:MenuElement({type = SPACE, id = "ToolTip", name = "Min Q.Range = 240 - Max Q.Range = 925", tooltip = "Adjust your Q Range! Recommend = 0.88"})
 
@@ -84,6 +85,7 @@ function Blitzcrank:Tick()
         local target = self:GetTarget(2000)
             --self:KillSteal()
             self:AutoHarass()
+            self:FlashQ()
                  if EOW:Mode() == "Combo" then
                   self:Combo()
                 end
@@ -171,6 +173,32 @@ function Blitzcrank:CastR(target)
         end
     end
 end
+
+
+function Blitzcrank:FlashQ()
+    if self.Menu.Misc.FlashQ:Value() == true then
+    if self:CanCast(_Q) then
+        local fqTarget
+        local fPos = myHero.pos:Extend(mousePos, 300)
+        for i=1,Game.HeroCount() do
+            local hero = Game.Hero(i)
+            if hero and self:IsValidTarget(hero, Q.Range) and hero.pos:DistanceTo(mousePos) < 100 then
+                fqTarget = hero
+            end
+        end
+    end
+        self:CastQ(fqTarget)
+        DelayAction(function()
+            if myHero:GetSpellData(5).name == "SummonerFlash" then
+                Control.CastSpell(HK_SUMMONER_1, fPos)
+            elseif myHero:GetSpellData(4).name == "SummonerFlash" then
+                Control.Control.CastSpell(HK_SUMMONER_2, fPos)
+            end
+        end)
+    end
+end
+
+
 
 function Blitzcrank:Draw()
     if myHero.dead then return end
