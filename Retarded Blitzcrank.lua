@@ -156,7 +156,7 @@ end
 
 function Blitzcrank:CastE(target)
     local target = self:GetTarget(2000)
-    if target --[[and self.IsReady(_E) and self:IsValidTarget(target, E.Range, false, myHero.pos)]] then
+    if target and self:CanCast(_E) --[[and self.IsReady(_E) and self:IsValidTarget(target, E.Range, false, myHero.pos)]] then
     local eTarget = self:GetTarget(E.Range)
         if eTarget then 
             Control.CastSpell(HK_E)
@@ -176,7 +176,7 @@ end
 
 
 function Blitzcrank:FlashQ()
-    if self.Menu.Misc.FlashQ:Value() == true then
+    if self.Menu.Misc.FlashQ:Value() then
     if self:CanCast(_Q) then
         local fqTarget
         local fPos = myHero.pos:Extend(mousePos, 300)
