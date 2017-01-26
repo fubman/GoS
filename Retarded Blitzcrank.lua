@@ -67,7 +67,7 @@ function Blitzcrank:LoadMenu()
 
     --[[Misc]]
     self.Menu:MenuElement({type = MENU, id = "Misc", name = "Misc Settings"})
-    self.Menu.Misc:MenuElement({id = "FlashQ", name = "Flash Q", key = string.byte("T"), tooltip = "", value = false})
+    --[[self.Menu.Misc:MenuElement({id = "FlashQ", name = "Flash Q", key = string.byte("T"), tooltip = "", value = false})]]
     self.Menu.Misc:MenuElement({id = "MaxRange", name = "Q Range Limiter", value = 1, min = 0.26, max = 1, step = 0.01, tooltip = "Adjust your Q Range! Recommend = 0.88"})
     self.Menu.Misc:MenuElement({type = SPACE, id = "ToolTip", name = "Min Q.Range = 240 - Max Q.Range = 925", tooltip = "Adjust your Q Range! Recommend = 0.88"})
 
@@ -83,9 +83,8 @@ end
 function Blitzcrank:Tick()
     if myHero.dead then return end
         local target = self:GetTarget(2000)
-            --self:KillSteal()
+            self:KillSteal()
             self:AutoHarass()
-            self:FlashQ()
                  if EOW:Mode() == "Combo" then
                   self:Combo()
                 end
@@ -136,9 +135,9 @@ function Blitzcrank:AutoHarass(target)
         end
     end
 end
-
+--[[CastQ]]
 function Blitzcrank:CastQ(target)
-    local target = self:GetTarget(2000)
+    local target = self:GetTarget(925)
     if target and self:CanCast(_Q) and self:IsValidTarget(target, Q.Range, false, myHero.pos) then
     local qTarget = self:GetTarget(Q.Range * self.Menu.Misc.MaxRange:Value())
     if qTarget and target:GetCollision(Q.Range) == 0 then
@@ -155,8 +154,8 @@ function Blitzcrank:CastW(target)
 end
 
 function Blitzcrank:CastE(target)
-    local target = self:GetTarget(2000)
-    if target and self:CanCast(_E) --[[and self.IsReady(_E) and self:IsValidTarget(target, E.Range, false, myHero.pos)]] then
+    local target = self:GetTarget(240)
+    if target and self:CanCast(_E) then
     local eTarget = self:GetTarget(E.Range)
         if eTarget then 
             Control.CastSpell(HK_E)
@@ -165,8 +164,8 @@ function Blitzcrank:CastE(target)
 end
 
 function Blitzcrank:CastR(target)
-    local target = self:GetTarget(2000)
-    if target and self.IsReady(_R) and self:IsValidTarget(target, R.Range, false, myHero.pos) then
+    local target = self:GetTarget(600)
+    if target and self:CanCast(_R) and self:IsValidTarget(target, Q.Range, false, myHero.pos) then
     local rTarget = self:GetTarget(R.Range)
         if rTarget then 
             Control.CastSpell(HK_R)
@@ -175,29 +174,31 @@ function Blitzcrank:CastR(target)
 end
 
 
-function Blitzcrank:FlashQ()
-    if self.Menu.Misc.FlashQ:Value() then
-    if self:CanCast(_Q) then
-        local fqTarget
-        local fPos = myHero.pos:Extend(mousePos, 300)
-        for i=1,Game.HeroCount() do
-            local hero = Game.Hero(i)
-            if hero and self:IsValidTarget(hero, Q.Range) and hero.pos:DistanceTo(mousePos) < 100 then
-                fqTarget = hero
+function Blitzcrank:KillSteal()
+    if self.Menu.KillSteal.Disabled:Value() or (self:IsRecalling() and self.Menu.KillSteal.Recall:Value()) then return end
+    for K, Enemy in pairs(self:GetEnemyHeroes()) do
+        if self.Menu.KillSteal.KillStealQ:Value() and self:IsReady(_Q) and self:IsValidTarget(Enemy, Q.range, false, myHero.pos) then
+            if getdmg("Q", Enemy, myHero) > Enemy.health then
+                self:CastQ()
+            end
+        end
+        if self.Menu.KillSteal.KillStealR:Value() and self:IsReady(_R) and self:IsValidTarget(Enemy, R.range, false, myHero.pos) then
+            if getdmg("R", Enemy, myHero) > Enemy.health then
+                self:CastR()
+            end
+        end
+    if myHero:GetSpellData(5).name == "SummonerDot" and self.Menu.KillSteal.KillStealIgnite:Value() and self:IsReady(SUMMONER_2) then
+            if self:IsValidTarget(Enemy, 600, false, myHero.pos) and Enemy.health + Enemy.hpRegen*2.5 + Enemy.shieldAD < 50 + 20*myHero.levelData.lvl then
+                Control.CastSpell(HK_SUMMONER_2, Enemy)
+            end
+        end
+        if myHero:GetSpellData(4).name == "SummonerDot" and self.Menu.KillSteal.KillStealIgnite:Value() and self:IsReady(SUMMONER_1) then
+            if self:IsValidTarget(Enemy, 600, false, myHero.pos) and Enemy.health + Enemy.hpRegen*2.5 + Enemy.shieldAD < 50 + 20*myHero.levelData.lvl then
+                Control.CastSpell(HK_SUMMONER_1, Enemy)
             end
         end
     end
-        self:CastQ(fqTarget)
-        DelayAction(function()
-            if myHero:GetSpellData(5).name == "SummonerFlash" then
-                Control.CastSpell(HK_SUMMONER_1, fPos)
-            elseif myHero:GetSpellData(4).name == "SummonerFlash" then
-                Control.Control.CastSpell(HK_SUMMONER_2, fPos)
-            end
-        end)
-    end
 end
-
 
 
 function Blitzcrank:Draw()
