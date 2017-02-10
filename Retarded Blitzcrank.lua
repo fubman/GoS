@@ -185,7 +185,7 @@ end
 
 function Blitzcrank:KsQE(target)
     for K, Enemy in pairs(self:GetEnemyHeroes()) do
-        if self:IsValidTarget(Enemy, E.range, false, myHero.pos) and Enemy.pos:DistanceTo(target.pos) < Q.range then
+        if self:IsValidTarget(Enemy, E.Range, false, myHero.pos) and Enemy.pos:DistanceTo(target.pos) < Q.Range then
             self:CastE(Enemy) return 
         end
     end
