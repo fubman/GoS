@@ -1,10 +1,13 @@
+--[[v1.0]]
+local Scriptname,Version,Author,LVersion = "[Retarded] Blitzcrank","v1.0","FubMaN","7.3"
+
 class "Blitzcrank"
 
 require('DamageLib')
 
 function Blitzcrank:__init()
     if myHero.charName ~= "Blitzcrank" then return end
-    PrintChat("[Retarded] Blitzcrank - Loaded....")
+    PrintChat("[Retarded] Blitzcrank "..Version.." - Loaded....")
     self:LoadSpells()
     self:LoadMenu()
     Callback.Add("Tick", function() self:Tick() end)
@@ -83,6 +86,10 @@ function Blitzcrank:LoadMenu()
     self.Menu.Draw:MenuElement({id = "DrawE", name = "Draw E Range", value = true})
     self.Menu.Draw:MenuElement({id = "DrawR", name = "Draw R Range", value = true})
     self.Menu.Draw:MenuElement({id = "DrawDamage", name = "Draw Damage", value = true})
+
+  self.Menu:MenuElement({id = "blank", type = SPACE , name = ""})
+  self.Menu:MenuElement({id = "blank", type = SPACE , name = "Script Ver: "..Version.. " - LoL Ver: "..LVersion.. ""})
+  self.Menu:MenuElement({id = "blank", type = SPACE , name = "by "..Author.. ""})
 end
 --[[Update]]
 function Blitzcrank:Tick()
