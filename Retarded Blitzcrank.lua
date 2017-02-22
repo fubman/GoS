@@ -1,4 +1,4 @@
---[[v1.0]]
+--test[[v1.0]]
 local Scriptname,Version,Author,LVersion = "[Retarded] Blitzcrank","v1.0","FubMaN","7.3"
 
 class "Blitzcrank"
