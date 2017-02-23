@@ -1,5 +1,5 @@
---test[[v1.0]]
-local Scriptname,Version,Author,LVersion = "[Retarded] Blitzcrank","v1.0","FubMaN","7.3"
+--[v1.1]]
+local Scriptname,Version,Author,LVersion = "[Retarded] Blitzcrank","v1.1","FubMaN","7.4"
 
 class "Blitzcrank"
 
@@ -28,6 +28,7 @@ local Icons = {
     ["E"] = "http://static.lolskill.net/img/abilities/64/Blitzcrank_PowerFist.png",
     ["R"] = "http://static.lolskill.net/img/abilities/64/Blitzcrank_StaticField.png"
 }
+
 --[[Spell Data]]
 local qSpellData = myHero:GetSpellData(_Q);
 local wSpellData = myHero:GetSpellData(_W);
@@ -53,7 +54,6 @@ function Blitzcrank:LoadMenu()
     self.Menu.Harass:MenuElement({id = "HarassQ", name = "Use Q", value = true})
     self.Menu.Harass:MenuElement({id = "HarassE", name = "Use E", value = true})
     self.Menu.Harass:MenuElement({id = "AutoHarass", name = "Harass Toggle", value = false})
-    --[[self.Menu.Harass:MenuElement({id = "HarassToggle", name = "Harass Toggle", key = string.byte("H"), toggle = true})]]
     self.Menu.Harass:MenuElement({type = MENU, name = "WhiteList", id = "WhiteListQ", tooltip = "Grab only activated Targets!"})
     for K, Enemy in pairs(self:GetEnemyHeroes()) do
     self.Menu.Harass.WhiteListQ:MenuElement({name = Enemy.charName, id = Enemy.charName, value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/6.24.1/img/champion/"..Enemy.charName..".png"})
@@ -75,7 +75,6 @@ function Blitzcrank:LoadMenu()
     self.Menu:MenuElement({type = MENU, id = "Misc", name = "Misc Settings"})
     self.Menu.Misc:MenuElement({id = "MiscAutoR", name = "Auto R", value = false})
     self.Menu.Misc:MenuElement({id = "MiscMinR", name = "Min. Targets to Auto R", value = 3, min = 1, max = 5})
-    --[[self.Menu.Misc:MenuElement({id = "FlashQ", name = "Flash Q", key = string.byte("T"), tooltip = "", value = false})]]
     self.Menu.Misc:MenuElement({id = "MaxRange", name = "Q Range Limiter", value = 1, min = 0.26, max = 1, step = 0.01, tooltip = "Adjust your Q Range! Recommend = 0.88"})
     self.Menu.Misc:MenuElement({type = SPACE, id = "ToolTip", name = "Min Q.Range = 240 - Max Q.Range = 925", tooltip = "Adjust your Q Range! Recommend = 0.88"})
 
@@ -114,10 +113,8 @@ local target = self:GetTarget(925)
     
     if self.Menu.Combo.ComboE:Value() and self:IsReady(_E) then
     self:CastE(target)   
-        end
-
-        --[[only if Q + E is on CD]]
-   if self.Menu.Combo.ComboR:Value() and self:GetEnemyCount() >= self.Menu.Combo.ComboMinR:Value() and self:IsReady(_R) then
+    elseif
+    self.Menu.Combo.ComboR:Value() and self:GetEnemyCount() >= self.Menu.Combo.ComboMinR:Value() and self:IsReady(_R) then
         self:CastR()
         end
     end
