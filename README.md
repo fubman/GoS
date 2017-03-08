@@ -1,4 +1,3 @@
-#Gaming On Steroids
+Gaming On Steroids
 
-
-GoS Ext Scripts!
+GoS Ext for League of Legends Scripts
