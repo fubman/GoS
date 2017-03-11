@@ -416,7 +416,6 @@ function Blitzcrank:Tick()
 	elseif target and _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_HARASS] then
 		self:Harass(target)
 	end
-	--self:Misc()
 	self:KillSteal()
     self:AutoHarass()
 
@@ -546,7 +545,7 @@ function Blitzcrank:KsQR(target)
 end
 ]]
 
-function Blitzcrank:Misc()
+function Blitzcrank:FlashQ()
 
 end
 
