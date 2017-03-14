@@ -340,6 +340,28 @@ function LeftClick(pos)
 	DelayAction(ReturnCursor,0.05,{pos})
 end
 
+---------------------------------------------------------------------------
+--[[Rectangel]]
+---------------------------------------------------------------------------
+local function DrawLine3D(x,y,z,a,b,c,width,col)
+  local p1 = Vector(x,y,z):To2D()
+  local p2 = Vector(a,b,c):To2D()
+  Draw.Line(p1.x, p1.y, p2.x, p2.y, width, col)
+end
+
+local function DrawRectangleOutline(x, y, z, x1, y1, z1, width, col)
+  local startPos = Vector(x,y,z)
+  local endPos = Vector(x1,y1,z1)
+  local c1 = startPos+Vector(Vector(endPos)-startPos):Perpendicular():Normalized()*width
+  local c2 = startPos+Vector(Vector(endPos)-startPos):Perpendicular2():Normalized()*width
+  local c3 = endPos+Vector(Vector(startPos)-endPos):Perpendicular():Normalized()*width
+  local c4 = endPos+Vector(Vector(startPos)-endPos):Perpendicular2():Normalized()*width
+  DrawLine3D(c1.x,c1.y,c1.z,c2.x,c2.y,c2.z,2,col)
+  DrawLine3D(c2.x,c2.y,c2.z,c3.x,c3.y,c3.z,2,col)
+  DrawLine3D(c3.x,c3.y,c3.z,c4.x,c4.y,c4.z,2,col)
+  DrawLine3D(c1.x,c1.y,c1.z,c4.x,c4.y,c4.z,2,col)
+end
+
 require("DamageLib")
 
 class "Blitzcrank"
@@ -402,7 +424,8 @@ function Blitzcrank:Menu()
     Retarded.Draw:MenuElement({id = "DrawR", name = "Draw R Range", value = true})
     Retarded.Draw:MenuElement({id = "ColorR", name = "Color", color = Draw.Color(255, 249, 245, 0)})
     Retarded.Draw:MenuElement({id = "WidthALL", name = "Circle Width", value = 2, min = 1, max = 5, step = 1})
-    Retarded.Draw:MenuElement({id = "DrawDamage", name = "Draw Damage", value = true})
+    Retarded.Draw:MenuElement({id = "DrawPred", name = "Draw Pred", value = true})
+    Retarded.Draw:MenuElement({id = "DisableAll", name = "Disable All", value = false})
 end
 
 function Blitzcrank:Tick()
@@ -520,38 +543,23 @@ end
 end
 end
 
---[[function Blitzcrank:KsQE(target)
-    for K, Enemy in pairs(GetEnemyHeroes()) do
-        if IsValidTarget(Enemy, self.Spells.E.range, true, myHero.pos) and Enemy.pos:DistanceTo(target.pos) < Q.Range then
-                    if Retarded.Harass.AutoHarass:Value() and Ready(_Q) and Retarded.Harass.HarassQ:Value() and IsValidTarget(target, self.Spells.Q.range*Retarded.Misc.MaxRange:Value(), true, myHero.pos) and Retarded.Harass.WhiteListQ[target.charName]:Value() and myHero.mana > Retarded.Harass.HarassMana:Value() then
-          local qPred = GetPred(target,math.huge,0.35 + Game.Latency()/1000)
-			local qPred2 = GetPred(target,math.huge,1)
-			if qPred and qPred2 and target:GetCollision(self.Spells.Q.width, self.Spells.Q.speed, self.Spells.Q.delay) == 0 then
-				if GetDistance(myHero.pos,qPred2) < self.Spells.Q.range*Retarded.Misc.MaxRange:Value() then
-					CastSpell(HK_Q, qPred)
-				end
-		end
-        end
-    end
-end
-
-
-function Blitzcrank:KsQR(target)
-    for K, Enemy in pairs(GetEnemyHeroes()) do
-        if IsValidTarget(Enemy, self.Spells.Q.range, true, myHero.pos) and Enemy.pos:DistanceTo(target.pos) < R.Range then
-            self:CastQ(Enemy) return 
-        end
-    end
-end
-]]
-
-function Blitzcrank:Misc()
-
-end
-
 
 function Blitzcrank:Draw()
 if myHero.dead then return end
+	if Retarded.Draw.DisableAll:Value() then return end
+			local target = _G.SDK.TargetSelector:GetTarget(self.Spells.Q.range)
+				if target and Retarded.Draw.DrawPred:Value() then
+					local Pred = GetPred(target,math.huge,0.35 + Game.Latency()/1000)
+						local Pred2 = GetPred(target,math.huge,1)
+							if Pred and Pred2 and target:GetCollision(self.Spells.Q.width, self.Spells.Q.speed, self.Spells.Q.delay) == 0 then
+						Draw.Circle(Pred, self.Spells.Q.width)
+     				DrawRectangleOutline(myHero.pos.x, myHero.pos.y, myHero.pos.z, Pred.x, Pred.y, Pred.z, self.Spells.Q.width, col)	
+
+     			Draw.Circle(Pred2, self.Spells.Q.width, Draw.Color(255, 255, 0, 10))
+     				DrawRectangleOutline(myHero.pos.x, myHero.pos.y, myHero.pos.z, Pred2.x, Pred2.y, Pred2.z, self.Spells.Q.width, Draw.Color(255, 255, 0, 10))	
+				end
+			end
+
     if Retarded.Draw.DrawReady:Value() then
         if Ready(_Q) and Retarded.Draw.DrawQ:Value() then
             Draw.Circle(myHero.pos, ""..tostring(self.Spells.Q.range * Retarded.Misc.MaxRange:Value()).."", Retarded.Draw.WidthALL:Value(), Retarded.Draw.ColorQ:Value())
