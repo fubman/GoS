@@ -1,4 +1,4 @@
-local RChamps = {"Katarina"}
+local RChamps = {"Blitzcrank"}
 if not table.contains(RChamps, myHero.charName) then print("" ..myHero.charName.. " Is Not Supported!") return end
 
 local Retarded = MenuElement({type = MENU, id = "Retarded", name = "Retarded - "..myHero.charName})
@@ -376,29 +376,12 @@ function Blitzcrank:__init()
 	self:Menu()
 	Callback.Add("Tick", function() self:Tick() end)
 	Callback.Add("Draw", function() self:Draw() end)
-	Callback.Add("ProcessRecall", function(u,s) self:CountUpdate() end) --[[Test]]
-	Callback.Add("ProcessRecall", function(u,s) self:CountUpdateDone() end) --[[Test]]
 	ProcessSpellsLoad()
-	self.QHit = 0 --[[Test]]
-	self.CCount = false --[[Test]]
-	self.QTotal = 0 --[[Test]]
-	
+	Callback.Add("Tick", function() self:__Tick() end)
+	self.QHit = 0
+	self.CCount = false
+	self.QTotal = 0
 end
---[[Test]]
-function Blitzcrank:CountUpdate(unit,buff)
-	for _, Enemy in pairs(GetEnemyHeroes()) do
-	if unit.team ~= myHero.team and unit.type == myHero.type and Enemy:GetBuff(rocketGrab).name == "rocketgrab2" and self.CCount then
-		self.QHit = self.QHit + 1
-	end	
-end
-end
-function Blitzcrank:CountUpdateDone(unit,spell)
-	if unit.isMe and self.CCount and myHero:GetSpellData(_Q).name == "rocketGrab" then
-		self.QTotal = self.QTotal + 1
-	end
-end
-
---[[Test]]
 --------------------------------------------------------------------------------
 --[[Menu]]
 --------------------------------------------------------------------------------	
@@ -421,7 +404,7 @@ function Blitzcrank:Menu()
 
     Retarded.Harass:MenuElement({id = "HarassQ", name = "Use Q", value = true})
     Retarded.Harass:MenuElement({id = "HarassE", name = "Use E", value = true})
-    Retarded.Harass:MenuElement({id = "AutoHarassQ", name = "Harass Q Toggle", key = string.byte("H"), toggle = true})
+    Retarded.Harass:MenuElement({id = "AutoHarassQ", name = "Harass Q Toggle", key = string.byte("K"), toggle = true})
     Retarded.Harass:MenuElement({type = MENU, name = "WhiteList", id = "WhiteListQ", tooltip = "Grab only activated Targets!"})
     for K, Enemy in pairs(GetEnemyHeroes()) do
     Retarded.Harass.WhiteListQ:MenuElement({name = Enemy.charName, id = Enemy.charName, value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/6.24.1/img/champion/"..Enemy.charName..".png"})
@@ -460,26 +443,79 @@ function Blitzcrank:Menu()
 end
 --------------------------------------------------------------------------------
 --[[Tickt]]
---------------------------------------------------------------------------------	
+--------------------------------------------------------------------------------
+function Blitzcrank:__Tick()
+	self:UBuff1()
+	self:UBuff2()
+end
+
 function Blitzcrank:Tick()
-	--[[
 	if myHero.dead then return end
 	ProcessSpellCallback()
 	self:KillSteal()
-    --self:AutoHarassQ()
+    self:AutoHarassQ()
 	local target = _G.SDK.TargetSelector:GetTarget(2000)
 
 	if target and _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_COMBO] then
 		self:Combo(target)
 	elseif target and _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_HARASS] then
 		self:Harass(target)
-	end]]
+	end
+
+end
+--------------------------------------------------------------------------------
+--[[Test]]
+--------------------------------------------------------------------------------
+function Blitzcrank:GetBuffs(unit)
+    self.buffs = {}
+
+    for i = 0, unit.buffCount do
+        local Buff = unit:GetBuff(i)
+
+        if Buff.count > 0 then
+            table.insert(self.buffs, Buff)
+        end
+    end
+
+    return self.buffs
+end
+
+function Blitzcrank:GetBuff(unit, buffname)
+	local _allBuffs = self:GetBuffs(unit)
+
+	for i = 1, #_allBuffs do
+		local Buff = _allBuffs[i]
+
+		if Buff.name:lower() == buffname:lower() then
+			return true
+		end
+	end
+
+	return false
+end
+
+function Blitzcrank:UBuff1()
+	for i = 1, Game.HeroCount() do
+    	local hero = Game.Hero(i)
+     	local buff = hero and hero.isEnemy and self:GetBuff(hero, "RocketGrab2")
+
+      	if self.CCount and buff then
+      		self.QHit = self.QHit + 1
+      		break
+  		end
+	end
+end
+
+function Blitzcrank:UBuff2()
+	if self.CCount and myHero:GetSpellData(_Q).name == "RocketGrab" then
+		self.QTotal = self.QTotal + 1
+	end
 end
 --------------------------------------------------------------------------------
 --[[Combo]]
 --------------------------------------------------------------------------------	
 function Blitzcrank:Combo(target)
---[[local ComboWMax = Retarded.Combo.ComboWMax:Value()
+local ComboWMax = Retarded.Combo.ComboWMax:Value()
 local ComboWMin = Retarded.Combo.ComboWMin:Value()
 local ComboManaQ = Retarded.Combo.ComboManaQ:Value()
 local ComboManaW = Retarded.Combo.ComboManaW:Value()
@@ -491,6 +527,7 @@ if Ready(_Q) and Retarded.Combo.ComboQ:Value() and Retarded.Combo.WhiteListQ[tar
 	local qPred2 = GetPred(target,math.huge,1)
 	if qPred and qPred2 and target:GetCollision(self.Spells.Q.width, self.Spells.Q.speed, self.Spells.Q.delay) == 0 then
 	if GetDistance(myHero.pos,qPred2) < self.Spells.Q.range*Retarded.Misc.MaxRange:Value() then
+		self.CCount = true
 			CastSpell(HK_Q, qPred)
 	end
 	end
@@ -503,7 +540,7 @@ if Ready(_Q) and Retarded.Combo.ComboQ:Value() and Retarded.Combo.WhiteListQ[tar
     end
     if Ready(_R) and not Ready(_E) and Retarded.Combo.ComboR:Value() and IsValidTarget(target, self.Spells.R.range, true, myHero.pos) and GetEnemyCount() >= Retarded.Combo.ComboMinR:Value() and (myHero.mana/myHero.maxMana >= ComboManaR/100) then
        		Control.CastSpell(HK_R)  
-    end]]
+    end
   	end
 --------------------------------------------------------------------------------
 --[[Harass]]
@@ -545,22 +582,6 @@ function Blitzcrank:AutoHarassQ()
 			end
 		end
 end
---[[FIXX	
-function Blitzcrank:AutoHarassQ()
-	local HarassManaQ = Retarded.Harass.HarassManaQ:Value()
-	 local target = _G.SDK.TargetSelector:GetTarget(2000)
-    if target then 
-        if Retarded.Harass.AutoHarassQ:Value() and Ready(_Q) and Retarded.Harass.HarassQ:Value() and IsValidTarget(target, self.Spells.Q.range*Retarded.Misc.MaxRange:Value(), true, myHero.pos) and Retarded.Harass.WhiteListQ[target.charName]:Value() and (myHero.mana/myHero.maxMana >= HarassManaQ/100) then
-          local qPred = GetPred(target,math.huge,0.35 + Game.Latency()/1000)
-			local qPred2 = GetPred(target,math.huge,1)
-			if qPred and qPred2 and target:GetCollision(self.Spells.Q.width, self.Spells.Q.speed, self.Spells.Q.delay) == 0 then
-				if GetDistance(myHero.pos,qPred2) < self.Spells.Q.range*Retarded.Misc.MaxRange:Value() then
-					CastSpell(HK_Q, qPred)
-			end
-		end
-			end
-		end
-end]]
 --------------------------------------------------------------------------------
 --[[Killsteal]]
 --------------------------------------------------------------------------------	
@@ -616,7 +637,7 @@ end
 --------------------------------------------------------------------------------				
 function Blitzcrank:Draw()
 local QHitPos = myHero.pos:To2D()
-Draw.Text("Q Stats: "..tostring(self.QHit / self.QTotal).."", 20, QHitPos.x + 200, QHitPos.y + 200, Draw.Color(255, 255, 0, 10))
+Draw.Text("Q Stats: "..(self.QHit).." / "..(self.QTotal).."", 20, QHitPos.x + 200, QHitPos.y + 200, Draw.Color(255, 255, 0, 10))
 
 if myHero.dead then return end
 	local ComboWMax = Retarded.Combo.ComboWMax:Value()
@@ -625,7 +646,6 @@ if myHero.dead then return end
 	local DrawWM = Retarded.Draw.DrawWM:Value()
 	local ColorM = Retarded.Draw.ColorM:Value()
 	local DrawPred = Retarded.Draw.DrawPred:Value()
-	local textPos = myHero.pos:To2D()
 	if Retarded.Draw.DisableAll:Value() then return end
     if Retarded.Draw.DrawReady:Value() then
         if Ready(_Q) and Retarded.Draw.DrawQ:Value() then
@@ -666,7 +686,7 @@ if myHero.dead then return end
 				end
 			end
 		end
-   
+    local textPos = myHero.pos:To2D()
     Draw.Text("Q Range: "..tostring(self.Spells.Q.range * Retarded.Misc.MaxRange:Value()).."", 20, textPos.x + 180, textPos.y - 10, Draw.Color(255, 255, 0, 10))
     if Retarded.Harass.AutoHarassQ:Value() then
     Draw.Text("Harass Toggle: On", 20, textPos.x + 180, textPos.y + 10, Draw.Color(255, 255, 0, 10))
