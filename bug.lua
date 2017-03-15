@@ -377,7 +377,6 @@ function Blitzcrank:__init()
 	Callback.Add("Tick", function() self:Tick() end)
 	Callback.Add("Draw", function() self:Draw() end)
 	ProcessSpellsLoad()
-	Callback.Add("Tick", function() self:__Tick() end)
 	self.QHit = 0
 	self.CCount = false
 	self.QTotal = 0
@@ -444,14 +443,10 @@ end
 --------------------------------------------------------------------------------
 --[[Tickt]]
 --------------------------------------------------------------------------------
-function Blitzcrank:__Tick()
-	self:UBuff1()
-	self:UBuff2()
-end
-
 function Blitzcrank:Tick()
 	if myHero.dead then return end
 	ProcessSpellCallback()
+	self:GetQCast()
 	self:KillSteal()
     self:AutoHarassQ()
 	local target = _G.SDK.TargetSelector:GetTarget(2000)
@@ -466,51 +461,17 @@ end
 --------------------------------------------------------------------------------
 --[[Test]]
 --------------------------------------------------------------------------------
-function Blitzcrank:GetBuffs(unit)
-    self.buffs = {}
-
-    for i = 0, unit.buffCount do
-        local Buff = unit:GetBuff(i)
-
-        if Buff.count > 0 then
-            table.insert(self.buffs, Buff)
+   function Blitzcrank:GetQCast()
+        if not self.QCasted then
+            local lastTimeQcasted = (myHero:GetSpellData(_Q).castTime - myHero:GetSpellData(_Q).cd)
+            if (lastTimeQcasted - Game.Timer() >= -0.1) then
+                self.QCasted = true
+                self.QTotal = self.QTotal + 1
+            end
         end
+
+        if Ready(_Q) then self.QCasted = false end
     end
-
-    return self.buffs
-end
-
-function Blitzcrank:GetBuff(unit, buffname)
-	local _allBuffs = self:GetBuffs(unit)
-
-	for i = 1, #_allBuffs do
-		local Buff = _allBuffs[i]
-
-		if Buff.name:lower() == buffname:lower() then
-			return true
-		end
-	end
-
-	return false
-end
-
-function Blitzcrank:UBuff1()
-	for i = 1, Game.HeroCount() do
-    	local hero = Game.Hero(i)
-     	local buff = hero and hero.isEnemy and self:GetBuff(hero, "RocketGrab2")
-
-      	if self.CCount and buff then
-      		self.QHit = self.QHit + 1
-      		break
-  		end
-	end
-end
-
-function Blitzcrank:UBuff2()
-	if self.CCount and myHero:GetSpellData(_Q).name == "RocketGrab" then
-		self.QTotal = self.QTotal + 1
-	end
-end
 --------------------------------------------------------------------------------
 --[[Combo]]
 --------------------------------------------------------------------------------	
@@ -527,8 +488,7 @@ if Ready(_Q) and Retarded.Combo.ComboQ:Value() and Retarded.Combo.WhiteListQ[tar
 	local qPred2 = GetPred(target,math.huge,1)
 	if qPred and qPred2 and target:GetCollision(self.Spells.Q.width, self.Spells.Q.speed, self.Spells.Q.delay) == 0 then
 	if GetDistance(myHero.pos,qPred2) < self.Spells.Q.range*Retarded.Misc.MaxRange:Value() then
-		self.CCount = true
-			CastSpell(HK_Q, qPred)
+			CastSpell(HK_Q, qPred)		
 	end
 	end
 	end
@@ -637,7 +597,7 @@ end
 --------------------------------------------------------------------------------				
 function Blitzcrank:Draw()
 local QHitPos = myHero.pos:To2D()
-Draw.Text("Q Stats: "..(self.QHit).." / "..(self.QTotal).."", 20, QHitPos.x + 200, QHitPos.y + 200, Draw.Color(255, 255, 0, 10))
+Draw.Text("Q Stats: "..(self.QHit).." hits / "..(self.QTotal).." total", 20, QHitPos.x + 100, QHitPos.y + 100, Draw.Color(255, 255, 0, 10))
 
 if myHero.dead then return end
 	local ComboWMax = Retarded.Combo.ComboWMax:Value()
