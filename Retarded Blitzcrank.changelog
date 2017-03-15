@@ -1,4 +1,15 @@
 Changelog:
+2.0 -> 2.1:
+-Some Bug fixes
+-Logic Update
+-Spellcast Delay
+-Draw Pred(Rectangel)
+-Killsteal (Q+R Combo)
+-Combo W Target Distance >
+-Combo W Target Distance <
+-Draw E Range
+-Draw W Min/Max
+-Mana Slider for: Combo Q / W / E R and Harass Q / E
 
 1.1 -> 2.0:
 -Big Rework alot of Bugs fixes 
@@ -6,7 +17,7 @@ Changelog:
 -Combo Q W E R Logic
 -Harass Q E and Toggle Harass Q 
 -KS Q R and Ignite
-​-Better Q Pred / Casting
+-Better Q Pred / Casting
 -Next Big Update Tomorrow
 
 1.0 -> 1.1:
