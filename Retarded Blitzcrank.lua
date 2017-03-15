@@ -578,7 +578,7 @@ end
 --------------------------------------------------------------------------------				
 function Blitzcrank:Draw()
 local QHitPos = myHero.pos:To2D()
-Draw.Text("Q Stats: "..tostring(self.QHit / self.QTotal).."", 20, QHitPos.x + 200, QHitPos.y + 200, Draw.Color(255, 255, 0, 10))
+--Draw.Text("Q Stats: "..tostring(self.QHit / self.QTotal).."", 20, QHitPos.x + 200, QHitPos.y + 200, Draw.Color(255, 255, 0, 10))
 
 if myHero.dead then return end
 	local ComboWMax = Retarded.Combo.ComboWMax:Value()
