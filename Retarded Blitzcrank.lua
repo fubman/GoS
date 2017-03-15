@@ -444,6 +444,8 @@ end
 function Blitzcrank:Tick()
 	if myHero.dead then return end
 	ProcessSpellCallback()
+	self:KillSteal()
+    self:AutoHarassQ()
 	local target = _G.SDK.TargetSelector:GetTarget(2000)
 
 	if target and _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_COMBO] then
@@ -451,9 +453,6 @@ function Blitzcrank:Tick()
 	elseif target and _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_HARASS] then
 		self:Harass(target)
 	end
-	self:KillSteal()
-    self:AutoHarassQ()
-
 end
 
 --[[Combo [Q +(Whitelist + Range Limiter)/[W +(Distance > 1050 and Distance < 700) [E] + [R +(Min R)] ]]
