@@ -1,4 +1,4 @@
-local RChamps = {"Blitzcrank"}
+local RChamps = {"Katarina"}
 if not table.contains(RChamps, myHero.charName) then print("" ..myHero.charName.. " Is Not Supported!") return end
 
 local Retarded = MenuElement({type = MENU, id = "Retarded", name = "Retarded - "..myHero.charName})
