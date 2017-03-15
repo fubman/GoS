@@ -7,8 +7,9 @@ Retarded:MenuElement({type = MENU, id = "Harass", name = "Harass Settings"})
 Retarded:MenuElement({type = MENU, id = "KillSteal", name = "Killsteal Settings"})
 Retarded:MenuElement({type = MENU, id = "Misc", name = "Misc Settings"})
 Retarded:MenuElement({type = MENU, id = "Draw", name = "Draw Settings"})
-
-
+--------------------------------------------------------------------------------
+--[[Custom]]
+--------------------------------------------------------------------------------
 local function Ready(spell)
 	return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spell).mana <= myHero.mana
 end
@@ -155,7 +156,6 @@ function IsFacing(unit)
 	return 1
 end
 
-
 function IsImmune(unit)
 	if type(unit) ~= "userdata" then error("{IsImmune}: bad argument #1 (userdata expected, got "..type(unit)..")") end
 	for i, buff in pairs(GetBuffs(unit)) do
@@ -259,7 +259,6 @@ local function GetPred(unit,speed,delay)
 	end
 end
 
--- used from TRUS Vik START
 local castSpell = {state = 0, tick = GetTickCount(), casting = GetTickCount() - 1000, mouse = mousePos}
 local spellslist = {_Q,_W,_E,_R,SUMMONER_1,SUMMONER_2}
 lastcallback = {}
@@ -308,7 +307,6 @@ function SecondPosE(pos)
 	Control.mouse_event(MOUSEEVENTF_LEFTUP)
 end
 
-
 function LeftClick(pos)
 	Control.mouse_event(MOUSEEVENTF_LEFTDOWN)
 	Control.mouse_event(MOUSEEVENTF_LEFTUP)
@@ -332,17 +330,15 @@ function CastSpell(spell,pos)
 		end
 	end
 end
--- used from TRUS Vik END
 
 function LeftClick(pos)
 	Control.mouse_event(MOUSEEVENTF_LEFTDOWN)
 	Control.mouse_event(MOUSEEVENTF_LEFTUP)
 	DelayAction(ReturnCursor,0.05,{pos})
 end
-
----------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 --[[Rectangel]]
----------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 local function DrawLine3D(x,y,z,a,b,c,width,col)
   local p1 = Vector(x,y,z):To2D()
   local p2 = Vector(a,b,c):To2D()
@@ -361,11 +357,14 @@ local function DrawRectangleOutline(x, y, z, x1, y1, z1, width, col)
   DrawLine3D(c3.x,c3.y,c3.z,c4.x,c4.y,c4.z,2,col)
   DrawLine3D(c1.x,c1.y,c1.z,c4.x,c4.y,c4.z,2,col)
 end
-
+--------------------------------------------------------------------------------
+--[[Blitzcrank]]
+--------------------------------------------------------------------------------	
 require("DamageLib")
-
 class "Blitzcrank"
-
+--------------------------------------------------------------------------------
+--[[Init]]
+--------------------------------------------------------------------------------	
 function Blitzcrank:__init()
 	print("Retarded - Blitzcrank Loaded...")
 	self.Spells = {
@@ -380,10 +379,10 @@ function Blitzcrank:__init()
 	ProcessSpellsLoad()
 	
 end
-
-
+--------------------------------------------------------------------------------
+--[[Menu]]
+--------------------------------------------------------------------------------	
 function Blitzcrank:Menu()
-	
 	Retarded.Combo:MenuElement({id = "ComboQ", name = "Use Q", value = true})
 	Retarded.Combo:MenuElement({id = "ComboW", name = "Use W", value = true})
 	Retarded.Combo:MenuElement({id = "ComboWMax", name = "W Target Distance < ", value = 1050, min = 0, max = 2000, step = 50, tooltip = "Cast W between Min - Max. default = 1050"})
@@ -414,7 +413,6 @@ function Blitzcrank:Menu()
     Retarded.KillSteal:MenuElement({id = "KillStealE", name = "Use E", value = true})
     Retarded.KillSteal:MenuElement({id = "KillStealR", name = "Use R", value = true})
     Retarded.KillSteal:MenuElement({id = "KillStealQR", name = "Use Q + R", value = true, tooltip = "Need Q and R KS enabled!"})
-
     if myHero:GetSpellData(4).name == "SummonerDot" or myHero:GetSpellData(5).name == "SummonerDot" then
     Retarded.KillSteal:MenuElement({id = "KillStealIgnite", name = "Use Ignite", value = false})
     end
@@ -440,7 +438,9 @@ function Blitzcrank:Menu()
     Retarded.Draw:MenuElement({id = "WidthALL", name = "Circle Width All", value = 2, min = 1, max = 5, step = 1})
     Retarded.Draw:MenuElement({id = "DisableAll", name = "Disable All", value = false})
 end
-
+--------------------------------------------------------------------------------
+--[[Tickt]]
+--------------------------------------------------------------------------------	
 function Blitzcrank:Tick()
 	if myHero.dead then return end
 	ProcessSpellCallback()
@@ -454,8 +454,9 @@ function Blitzcrank:Tick()
 		self:Harass(target)
 	end
 end
-
---[[Combo [Q +(Whitelist + Range Limiter)/[W +(Distance > 1050 and Distance < 700) [E] + [R +(Min R)] ]]
+--------------------------------------------------------------------------------
+--[[Combo]]
+--------------------------------------------------------------------------------	
 function Blitzcrank:Combo(target)
 local ComboWMax = Retarded.Combo.ComboWMax:Value()
 local ComboWMin = Retarded.Combo.ComboWMin:Value()
@@ -483,9 +484,9 @@ if Ready(_Q) and Retarded.Combo.ComboQ:Value() and Retarded.Combo.WhiteListQ[tar
        		Control.CastSpell(HK_R)  
     end
   	end
-
---[[Harass Q + E (Whitelist + Q Range Limiter + ManaSlider)]]
---
+--------------------------------------------------------------------------------
+--[[Harass]]
+--------------------------------------------------------------------------------	
 function Blitzcrank:Harass(target)
 local HarassManaQ = Retarded.Harass.HarassManaQ:Value()
 local HarassManaE = Retarded.Harass.HarassManaE:Value()
@@ -505,8 +506,9 @@ local HarassManaE = Retarded.Harass.HarassManaE:Value()
     end
 
 end
-
---[[Auto Harass Q]]
+--------------------------------------------------------------------------------
+--[[Autoharass Q]]
+--------------------------------------------------------------------------------	
 function Blitzcrank:AutoHarassQ()
 	local HarassManaQ = Retarded.Harass.HarassManaQ:Value()
 	 local target = _G.SDK.TargetSelector:GetTarget(2000)
@@ -524,8 +526,9 @@ function Blitzcrank:AutoHarassQ()
 end
 end
 end
-
---[[KillSteal]]
+--------------------------------------------------------------------------------
+--[[Killsteal]]
+--------------------------------------------------------------------------------	
 function Blitzcrank:KillSteal()
     if Retarded.KillSteal.Disabled:Value() or (IsRecalling() and Retarded.KillSteal.Recall:Value()) then return end
 	for K, target in pairs(GetEnemyHeroes()) do
@@ -573,41 +576,9 @@ function Blitzcrank:KillSteal()
 	end
 		end
 end
-
---[[
-function Blitzcrank:KillSteal()
-    if Retarded.KillSteal.Disabled:Value() or (IsRecalling() and Retarded.KillSteal.Recall:Value()) then return end
-    for K, Enemy in pairs(GetEnemyHeroes()) do
-			if Retarded.KillSteal.KillStealQ:Value() and Ready(_Q) and IsValidTarget(Enemy, self.Spells.Q.range, true, myHero.pos) then
-				if getdmg("Q", Enemy, myHero) > Enemy.health then
-					local qPred = GetPred(Enemy,math.huge,0.35 + Game.Latency()/1000)
-						local qPred2 = GetPred(Enemy,math.huge,1)
-					if qPred and qPred2 and Enemy:GetCollision(self.Spells.Q.width, self.Spells.Q.speed, self.Spells.Q.delay) == 0 then	
-				if GetDistance(myHero.pos,qPred2) < self.Spells.Q.range then
-			CastSpell(HK_Q, qPred)
-    			end
-        	end
-            if Retarded.KillSteal.KillStealR:Value() and Ready(_R) and IsValidTarget(Enemy, self.Spells.R.range, true, myHero.pos) then
-            if getdmg("R", Enemy, myHero) > Enemy.health then
-                Control.CastSpell(HK_R)
-            end
-        end
-        if myHero:GetSpellData(5).name == "SummonerDot" and Retarded.KillSteal.KillStealIgnite:Value() and Ready(SUMMONER_2) then
-            if IsValidTarget(Enemy, 600, true, myHero.pos) and Enemy.health + Enemy.hpRegen*2.5 + Enemy.shieldAD < 50 + 20*myHero.levelData.lvl then
-                Control.CastSpell(HK_SUMMONER_2, Enemy)
-            end
-        end
-        if myHero:GetSpellData(4).name == "SummonerDot" and Retarded.KillSteal.KillStealIgnite:Value() and Ready(SUMMONER_1) then
-            if IsValidTarget(Enemy, 600, true, myHero.pos) and Enemy.health + Enemy.hpRegen*2.5 + Enemy.shieldAD < 50 + 20*myHero.levelData.lvl then
-                Control.CastSpell(HK_SUMMONER_1, Enemy)
-            end
-        end
-    end
-end
-end
-end
-]]
-
+--------------------------------------------------------------------------------
+--[[Draws]]
+--------------------------------------------------------------------------------				
 function Blitzcrank:Draw()
 if myHero.dead then return end
 	local ComboWMax = Retarded.Combo.ComboWMax:Value()
@@ -665,4 +636,4 @@ if myHero.dead then return end
 end
 end
 
-if _G[myHero.charName]() then print("" ..myHero.name.. " Have Fun:)") end
+if _G[myHero.charName]() then print("" ..myHero.name.. " Have Fun!!!") end
