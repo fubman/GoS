@@ -4,7 +4,7 @@ if not table.contains(RChamps, myHero.charName) then print("" ..myHero.charName.
 local Retarded = MenuElement({type = MENU, id = "Retarded", name = "Retarded - "..myHero.charName})
 Retarded:MenuElement({type = MENU, id = "Combo", name = "Combo Settings"})
 Retarded:MenuElement({type = MENU, id = "Harass", name = "Harass Settings"})
-Retarded:MenuElement({type = MENU, id = "KillSteal", name = "KS Settings"})
+Retarded:MenuElement({type = MENU, id = "KillSteal", name = "Killsteal Settings"})
 Retarded:MenuElement({type = MENU, id = "Misc", name = "Misc Settings"})
 Retarded:MenuElement({type = MENU, id = "Draw", name = "Draw Settings"})
 
@@ -378,12 +378,16 @@ function Blitzcrank:__init()
 	Callback.Add("Tick", function() self:Tick() end)
 	Callback.Add("Draw", function() self:Draw() end)
 	ProcessSpellsLoad()
+	
 end
 
 
 function Blitzcrank:Menu()
+	
 	Retarded.Combo:MenuElement({id = "ComboQ", name = "Use Q", value = true})
 	Retarded.Combo:MenuElement({id = "ComboW", name = "Use W", value = true})
+	Retarded.Combo:MenuElement({id = "ComboWMax", name = "W Target Distance < ", value = 1050, min = 0, max = 2000, step = 50, tooltip = "Cast W between Min - Max. default = 1050"})
+	Retarded.Combo:MenuElement({id = "ComboWMin", name = "W Target Distance > ", value = 700, min = 0, max = 2000, step = 50, tooltip = "Cast W between Min - Max. default = 700"})
     Retarded.Combo:MenuElement({id = "ComboE", name = "Use E", value = true})
     Retarded.Combo:MenuElement({id = "ComboR", name = "Use R", value = true})
     Retarded.Combo:MenuElement({id = "ComboMinR", name = "Min. Targets to R", value = 2, min = 1, max = 5})
@@ -391,40 +395,49 @@ function Blitzcrank:Menu()
     for K, Enemy in pairs(GetEnemyHeroes()) do
     Retarded.Combo.WhiteListQ:MenuElement({name = Enemy.charName, id = Enemy.charName, value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/6.24.1/img/champion/"..Enemy.charName..".png"})
     end
-
+    Retarded.Combo:MenuElement({id = "ComboManaQ", name = "Q Min. Mana", value = 0, min = 0, max = 100, tooltip = "Default is 0%."})
+    Retarded.Combo:MenuElement({id = "ComboManaW", name = "W Min. Mana", value = 0, min = 0, max = 100, tooltip = "Default is 0%."})
+    Retarded.Combo:MenuElement({id = "ComboManaE", name = "E Min. Mana", value = 0, min = 0, max = 100, tooltip = "Default is 0%."})
+    Retarded.Combo:MenuElement({id = "ComboManaR", name = "R Min. Mana", value = 0, min = 0, max = 100, tooltip = "Default is 0%."})
 
     Retarded.Harass:MenuElement({id = "HarassQ", name = "Use Q", value = true})
     Retarded.Harass:MenuElement({id = "HarassE", name = "Use E", value = true})
-    Retarded.Harass:MenuElement({id = "AutoHarass", name = "Harass Q Toggle", key = string.byte("H"), toggle = true})
+    Retarded.Harass:MenuElement({id = "AutoHarassQ", name = "Harass Q Toggle", key = string.byte("H"), toggle = true})
     Retarded.Harass:MenuElement({type = MENU, name = "WhiteList", id = "WhiteListQ", tooltip = "Grab only activated Targets!"})
     for K, Enemy in pairs(GetEnemyHeroes()) do
     Retarded.Harass.WhiteListQ:MenuElement({name = Enemy.charName, id = Enemy.charName, value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/6.24.1/img/champion/"..Enemy.charName..".png"})
     end
-    Retarded.Harass:MenuElement({id = "HarassMana", name = "Min. Mana", value = 25, min = 0, max = 100, tooltip = "Default is 25%."})
-
+    Retarded.Harass:MenuElement({id = "HarassManaQ", name = "Q Min. Mana", value = 25, min = 0, max = 100, tooltip = "Default is 25%."})
+    Retarded.Harass:MenuElement({id = "HarassManaE", name = "E Min. Mana", value = 25, min = 0, max = 100, tooltip = "Default is 25%."})
 
     Retarded.KillSteal:MenuElement({id = "KillStealQ", name = "Use Q", value = true})
     Retarded.KillSteal:MenuElement({id = "KillStealE", name = "Use E", value = true})
     Retarded.KillSteal:MenuElement({id = "KillStealR", name = "Use R", value = true})
+    Retarded.KillSteal:MenuElement({id = "KillStealQR", name = "Use Q + R", value = true, tooltip = "Need Q and R KS enabled!"})
+
     if myHero:GetSpellData(4).name == "SummonerDot" or myHero:GetSpellData(5).name == "SummonerDot" then
     Retarded.KillSteal:MenuElement({id = "KillStealIgnite", name = "Use Ignite", value = false})
     end
     Retarded.KillSteal:MenuElement({id = "Recall", name = "Disable During Recall", value = true})
     Retarded.KillSteal:MenuElement({id = "Disabled", name = "Disable All", value = false})
 
-    Retarded.Misc:MenuElement({id = "MiscAutoR", name = "Auto R", value = false})
-    Retarded.Misc:MenuElement({id = "MiscMinR", name = "Min. Targets to Auto R", value = 3, min = 1, max = 5})
+    --Retarded.Misc:MenuElement({id = "MiscAutoR", name = "Auto R", value = false})
+    --Retarded.Misc:MenuElement({id = "MiscMinR", name = "Min. Targets to Auto R", value = 3, min = 1, max = 5})
     Retarded.Misc:MenuElement({id = "MaxRange", name = "Q Range Limiter", value = 1, min = 0.26, max = 1, step = 0.01, tooltip = "Adjust your Q Range! Recommend = 0.88"})
     Retarded.Misc:MenuElement({type = SPACE, id = "ToolTip", name = "Min Q.Range = 240 - Max Q.Range = 925", tooltip = "Adjust your Q Range! Recommend = 0.88"})
-    Retarded.Misc:MenuElement({id = "delay", name = "spellcast delay", value = 50, min = 0, max = 200, step = 5, identifier = ""})
+    Retarded.Misc:MenuElement({id = "delay", name = "Spellcast delay", value = 50, min = 0, max = 200, step = 5, identifier = "", tooltip = "default is 50."})
 
     Retarded.Draw:MenuElement({id = "DrawReady", name = "Draw Only Ready [?]", value = true, tooltip = "Only draws spells when they're ready"})
     Retarded.Draw:MenuElement({id = "DrawQ", name = "Draw Q Range", value = true})
-    Retarded.Draw:MenuElement({id = "ColorQ", name = "Color", color = Draw.Color(255, 249, 0, 4)})
+    Retarded.Draw:MenuElement({id = "DrawE", name = "Draw E Range", value = true})
     Retarded.Draw:MenuElement({id = "DrawR", name = "Draw R Range", value = true})
-    Retarded.Draw:MenuElement({id = "ColorR", name = "Color", color = Draw.Color(255, 249, 245, 0)})
-    Retarded.Draw:MenuElement({id = "WidthALL", name = "Circle Width", value = 2, min = 1, max = 5, step = 1})
+    Retarded.Draw:MenuElement({id = "ColorQ", name = "Color Q", color = Draw.Color(255, 249, 0, 4)})
+    Retarded.Draw:MenuElement({id = "ColorE", name = "Color E", color = Draw.Color(255, 0, 161, 88)})
+    Retarded.Draw:MenuElement({id = "ColorR", name = "Color R", color = Draw.Color(255, 249, 245, 0)})
+    Retarded.Draw:MenuElement({id = "DrawWM", name = "Draw W Max/Min", value = false})
+    Retarded.Draw:MenuElement({id = "ColorM", name = "Color W Max/Min", color = Draw.Color(255, 169, 104, 255)})
     Retarded.Draw:MenuElement({id = "DrawPred", name = "Draw Pred", value = true})
+    Retarded.Draw:MenuElement({id = "WidthALL", name = "Circle Width All", value = 2, min = 1, max = 5, step = 1})
     Retarded.Draw:MenuElement({id = "DisableAll", name = "Disable All", value = false})
 end
 
@@ -438,40 +451,46 @@ function Blitzcrank:Tick()
 	elseif target and _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_HARASS] then
 		self:Harass(target)
 	end
-	--self:Misc()
 	self:KillSteal()
-    self:AutoHarass()
+    self:AutoHarassQ()
 
 end
 
 --[[Combo [Q +(Whitelist + Range Limiter)/[W +(Distance > 1050 and Distance < 700) [E] + [R +(Min R)] ]]
 function Blitzcrank:Combo(target)
+local ComboWMax = Retarded.Combo.ComboWMax:Value()
+local ComboWMin = Retarded.Combo.ComboWMin:Value()
+local ComboManaQ = Retarded.Combo.ComboManaQ:Value()
+local ComboManaW = Retarded.Combo.ComboManaW:Value()
+local ComboManaE = Retarded.Combo.ComboManaE:Value()
+local ComboManaR = Retarded.Combo.ComboManaR:Value()  
 
-if Ready(_Q) and Retarded.Combo.ComboQ:Value() and Retarded.Combo.WhiteListQ[target.charName]:Value() and IsValidTarget(target, self.Spells.Q.range*Retarded.Misc.MaxRange:Value(), true, myHero.pos) then
-			local qPred = GetPred(target,math.huge,0.35 + Game.Latency()/1000)
-			local qPred2 = GetPred(target,math.huge,1)
-			if qPred and qPred2 and target:GetCollision(self.Spells.Q.width, self.Spells.Q.speed, self.Spells.Q.delay) == 0 then
-				if GetDistance(myHero.pos,qPred2) < self.Spells.Q.range*Retarded.Misc.MaxRange:Value() then
-					CastSpell(HK_Q, qPred)
-				end
-			end
-		end
-				if Ready(_W) and Retarded.Combo.ComboW:Value() and target.distance < 1050 and target.distance > 700 then
-				Control.CastSpell(HK_W)
-end
-    if Ready(_E) and Retarded.Combo.ComboE:Value() and IsValidTarget(target, self.Spells.E.range, true, myHero.pos) then
+if Ready(_Q) and Retarded.Combo.ComboQ:Value() and Retarded.Combo.WhiteListQ[target.charName]:Value() and IsValidTarget(target, self.Spells.Q.range*Retarded.Misc.MaxRange:Value(), true, myHero.pos) and (myHero.mana/myHero.maxMana >= ComboManaQ/100) then
+	local qPred = GetPred(target,math.huge,0.35 + Game.Latency()/1000)
+	local qPred2 = GetPred(target,math.huge,1)
+	if qPred and qPred2 and target:GetCollision(self.Spells.Q.width, self.Spells.Q.speed, self.Spells.Q.delay) == 0 then
+	if GetDistance(myHero.pos,qPred2) < self.Spells.Q.range*Retarded.Misc.MaxRange:Value() then
+			CastSpell(HK_Q, qPred)
+	end
+	end
+	end
+	if Ready(_W) and Retarded.Combo.ComboW:Value() and target.distance < ComboWMax and target.distance > ComboWMin and (myHero.mana/myHero.maxMana >= ComboManaW/100) then
+			Control.CastSpell(HK_W)
+	end
+    if Ready(_E) and Retarded.Combo.ComboE:Value() and IsValidTarget(target, self.Spells.E.range, true, myHero.pos) and (myHero.mana/myHero.maxMana >= ComboManaE/100) then
     		Control.CastSpell(HK_E, target)
-   elseif Ready(_E) == true then return 
-    elseif Retarded.Combo.ComboR:Value() and GetEnemyCount() >= Retarded.Combo.ComboMinR:Value() and IsValidTarget(target, self.Spells.R.range, true, myHero.pos) then
+    end
+    if Ready(_R) and not Ready(_E) and Retarded.Combo.ComboR:Value() and IsValidTarget(target, self.Spells.R.range, true, myHero.pos) and GetEnemyCount() >= Retarded.Combo.ComboMinR:Value() and (myHero.mana/myHero.maxMana >= ComboManaR/100) then
        		Control.CastSpell(HK_R)  
     end
-
-  end
+  	end
 
 --[[Harass Q + E (Whitelist + Q Range Limiter + ManaSlider)]]
+--
 function Blitzcrank:Harass(target)
-
-    if Ready(_Q) and Retarded.Harass.HarassQ:Value() and Retarded.Harass.WhiteListQ[target.charName]:Value() and IsValidTarget(target, self.Spells.Q.range*Retarded.Misc.MaxRange:Value(), true, myHero.pos) and (myHero.mana/myHero.maxMana >= Retarded.Harass.HarassMana:Value()/100) then
+local HarassManaQ = Retarded.Harass.HarassManaQ:Value()
+local HarassManaE = Retarded.Harass.HarassManaE:Value()
+    if Ready(_Q) and Retarded.Harass.HarassQ:Value() and Retarded.Harass.WhiteListQ[target.charName]:Value() and IsValidTarget(target, self.Spells.Q.range*Retarded.Misc.MaxRange:Value(), true, myHero.pos) and (myHero.mana/myHero.maxMana >= HarassManaQ/100) then
       		local qPred = GetPred(target,math.huge,0.35 + Game.Latency()/1000)
 			local qPred2 = GetPred(target,math.huge,1)
 			if qPred and qPred2 and target:GetCollision(self.Spells.Q.width, self.Spells.Q.speed, self.Spells.Q.delay) == 0 then
@@ -482,18 +501,19 @@ function Blitzcrank:Harass(target)
 
     end
     
-    if Ready(_E) and Retarded.Harass.HarassE:Value() and IsValidTarget(target, self.Spells.E.range, true, myHero.pos) and (myHero.mana/myHero.maxMana >= Retarded.Harass.HarassMana:Value()/100) then
+    if Ready(_E) and Retarded.Harass.HarassE:Value() and IsValidTarget(target, self.Spells.E.range, true, myHero.pos) and (myHero.mana/myHero.maxMana >= HarassManaE/100) then
   			 Control.CastSpell(HK_E, target)  
     end
 
 end
 
 --[[Auto Harass Q]]
-function Blitzcrank:AutoHarass()
+function Blitzcrank:AutoHarassQ()
+	local HarassManaQ = Retarded.Harass.HarassManaQ:Value()
 	 local target = _G.SDK.TargetSelector:GetTarget(2000)
     if target then 
     	for _, Enemy in pairs(GetEnemyHeroes()) do
-        if Retarded.Harass.AutoHarass:Value() and Ready(_Q) and Retarded.Harass.HarassQ:Value() and IsValidTarget(target, self.Spells.Q.range*Retarded.Misc.MaxRange:Value(), true, myHero.pos) and Retarded.Harass.WhiteListQ[target.charName]:Value() and myHero.mana > Retarded.Harass.HarassMana:Value() then
+        if Retarded.Harass.AutoHarassQ:Value() and Ready(_Q) and Retarded.Harass.HarassQ:Value() and IsValidTarget(target, self.Spells.Q.range*Retarded.Misc.MaxRange:Value(), true, myHero.pos) and Retarded.Harass.WhiteListQ[target.charName]:Value() and (myHero.mana/myHero.maxMana >= HarassManaQ/100) then
           local qPred = GetPred(target,math.huge,0.35 + Game.Latency()/1000)
 			local qPred2 = GetPred(target,math.huge,1)
 			if qPred and qPred2 and target:GetCollision(self.Spells.Q.width, self.Spells.Q.speed, self.Spells.Q.delay) == 0 then
@@ -508,10 +528,57 @@ end
 
 --[[KillSteal]]
 function Blitzcrank:KillSteal()
- 
+    if Retarded.KillSteal.Disabled:Value() or (IsRecalling() and Retarded.KillSteal.Recall:Value()) then return end
+	for K, target in pairs(GetEnemyHeroes()) do
+		if Ready(_Q) and Retarded.KillSteal.KillStealQ:Value() and IsValidTarget(target, self.Spells.Q.range, true, myHero.pos) then
+			if getdmg("Q", target, myHero) > target.health then
+			local qPred = GetPred(target,math.huge,0.35 + Game.Latency()/1000)
+			local qPred2 = GetPred(target,math.huge,1)
+			if qPred and qPred2 and target:GetCollision(self.Spells.Q.width, self.Spells.Q.speed, self.Spells.Q.delay) == 0 then	
+			if GetDistance(myHero.pos,qPred2) < self.Spells.Q.range then
+			CastSpell(HK_Q, qPred)
+    		end
+        end
+        	end
+        end
+        if Ready(_E) and Retarded.KillSteal.KillStealE:Value() and IsValidTarget(target, self.Spells.E.range, true, myHero.pos) then
+        	if getdmg("E", target, myHero) > target.health then
+                Control.CastSpell(HK_E)
+            end
+        end
+        if Ready(_R) and Retarded.KillSteal.KillStealR:Value() and IsValidTarget(target, self.Spells.R.range, true, myHero.pos) then
+        	if getdmg("R", target, myHero) > target.health then
+                Control.CastSpell(HK_R)
+            end
+        end
+         if Ready(_Q) and Ready(_R) and Retarded.KillSteal.KillStealQR:Value() and IsValidTarget(target, self.Spells.Q.range, true, myHero.pos) then
+            if getdmg("Q", target, myHero) + getdmg("R", target, myHero) > target.health then 
+            local qPred = GetPred(target,math.huge,0.35 + Game.Latency()/1000)
+			local qPred2 = GetPred(target,math.huge,1)
+			if qPred and qPred2 and target:GetCollision(self.Spells.Q.width, self.Spells.Q.speed, self.Spells.Q.delay) == 0 then	
+			if GetDistance(myHero.pos,qPred2) < self.Spells.Q.range then
+			CastSpell(HK_Q, qPred)
+            end
+        end
+        	end
+        end
+        if myHero:GetSpellData(5).name == "SummonerDot" and Retarded.KillSteal.KillStealIgnite:Value() and Ready(SUMMONER_2) then
+            if IsValidTarget(target, 600, true, myHero.pos) and target.health + target.hpRegen*2.5 + target.shieldAD < 50 + 20*myHero.levelData.lvl then
+                Control.CastSpell(HK_SUMMONER_2, target)
+        end
+	end
+        if myHero:GetSpellData(4).name == "SummonerDot" and Retarded.KillSteal.KillStealIgnite:Value() and Ready(SUMMONER_1) then
+            if IsValidTarget(target, 600, true, myHero.pos) and target.health + target.hpRegen*2.5 + target.shieldAD < 50 + 20*myHero.levelData.lvl then
+            	Control.CastSpell(HK_SUMMONER_1, target)	
+		end
+	end
+		end
+end
+
+--[[
+function Blitzcrank:KillSteal()
     if Retarded.KillSteal.Disabled:Value() or (IsRecalling() and Retarded.KillSteal.Recall:Value()) then return end
     for K, Enemy in pairs(GetEnemyHeroes()) do
-
 			if Retarded.KillSteal.KillStealQ:Value() and Ready(_Q) and IsValidTarget(Enemy, self.Spells.Q.range, true, myHero.pos) then
 				if getdmg("Q", Enemy, myHero) > Enemy.health then
 					local qPred = GetPred(Enemy,math.huge,0.35 + Game.Latency()/1000)
@@ -521,7 +588,6 @@ function Blitzcrank:KillSteal()
 			CastSpell(HK_Q, qPred)
     			end
         	end
-
             if Retarded.KillSteal.KillStealR:Value() and Ready(_R) and IsValidTarget(Enemy, self.Spells.R.range, true, myHero.pos) then
             if getdmg("R", Enemy, myHero) > Enemy.health then
                 Control.CastSpell(HK_R)
@@ -539,30 +605,25 @@ function Blitzcrank:KillSteal()
         end
     end
 end
-
 end
 end
-
+]]
 
 function Blitzcrank:Draw()
 if myHero.dead then return end
+	local ComboWMax = Retarded.Combo.ComboWMax:Value()
+	local ComboWMin = Retarded.Combo.ComboWMin:Value()
+	local Widthall = Retarded.Draw.WidthALL:Value()
+	local DrawWM = Retarded.Draw.DrawWM:Value()
+	local ColorM = Retarded.Draw.ColorM:Value()
+	local DrawPred = Retarded.Draw.DrawPred:Value()
 	if Retarded.Draw.DisableAll:Value() then return end
-			local target = _G.SDK.TargetSelector:GetTarget(self.Spells.Q.range)
-				if target and Retarded.Draw.DrawPred:Value() then
-					local Pred = GetPred(target,math.huge,0.35 + Game.Latency()/1000)
-						local Pred2 = GetPred(target,math.huge,1)
-							if Pred and Pred2 and target:GetCollision(self.Spells.Q.width, self.Spells.Q.speed, self.Spells.Q.delay) == 0 then
-						Draw.Circle(Pred, self.Spells.Q.width)
-     				DrawRectangleOutline(myHero.pos.x, myHero.pos.y, myHero.pos.z, Pred.x, Pred.y, Pred.z, self.Spells.Q.width, col)	
-
-     			Draw.Circle(Pred2, self.Spells.Q.width, Draw.Color(255, 255, 0, 10))
-     				DrawRectangleOutline(myHero.pos.x, myHero.pos.y, myHero.pos.z, Pred2.x, Pred2.y, Pred2.z, self.Spells.Q.width, Draw.Color(255, 255, 0, 10))	
-				end
-			end
-
     if Retarded.Draw.DrawReady:Value() then
         if Ready(_Q) and Retarded.Draw.DrawQ:Value() then
             Draw.Circle(myHero.pos, ""..tostring(self.Spells.Q.range * Retarded.Misc.MaxRange:Value()).."", Retarded.Draw.WidthALL:Value(), Retarded.Draw.ColorQ:Value())
+        end
+         if Ready(_E) and Retarded.Draw.DrawE:Value() then
+            Draw.Circle(myHero.pos, self.Spells.E.range, Retarded.Draw.WidthALL:Value(), Retarded.Draw.ColorE:Value())
         end
         if Ready(_R) and Retarded.Draw.DrawR:Value() then
             Draw.Circle(myHero.pos, self.Spells.R.range, Retarded.Draw.WidthALL:Value(), Retarded.Draw.ColorR:Value())
@@ -571,15 +632,34 @@ if myHero.dead then return end
         if Retarded.Draw.DrawQ:Value() then
             Draw.Circle(myHero.pos, ""..tostring(self.Spells.Q.range * Retarded.Misc.MaxRange:Value()).."", Retarded.Draw.WidthALL:Value(), Retarded.Draw.ColorQ:Value())
         end
+         if Retarded.Draw.DrawE:Value() then
+            Draw.Circle(myHero.pos, self.Spells.E.range, Retarded.Draw.WidthALL:Value(), Retarded.Draw.ColorE:Value())
+        end
         if Retarded.Draw.DrawR:Value() then
             Draw.Circle(myHero.pos, self.Spells.R.range, Retarded.Draw.WidthALL:Value(), Retarded.Draw.ColorR:Value())
         end
     end
+    if DrawWM  and Ready(_W) then
+           Draw.Circle(myHero.pos, ComboWMax, Widthall, ColorM)
+           Draw.Circle(myHero.pos, ComboWMin, Widthall, ColorM)
+    end
+    	if DrawPred then 
+			local target = _G.SDK.TargetSelector:GetTarget(self.Spells.Q.range)
+				if target then
+					local Pred = GetPred(target,math.huge,0.35 + Game.Latency()/1000)
+						local Pred2 = GetPred(target,math.huge,1)
+							if Pred and Pred2 and target:GetCollision(self.Spells.Q.width, self.Spells.Q.speed, self.Spells.Q.delay) == 0 then
+						Draw.Circle(Pred, self.Spells.Q.width)
+     					DrawRectangleOutline(myHero.pos.x, myHero.pos.y, myHero.pos.z, Pred.x, Pred.y, Pred.z, self.Spells.Q.width, col)	
 
+     					Draw.Circle(Pred2, self.Spells.Q.width, Draw.Color(255, 255, 0, 10))
+     					DrawRectangleOutline(myHero.pos.x, myHero.pos.y, myHero.pos.z, Pred2.x, Pred2.y, Pred2.z, self.Spells.Q.width, Draw.Color(255, 255, 0, 10))	
+				end
+			end
+		end
     local textPos = myHero.pos:To2D()
     Draw.Text("Q Range: "..tostring(self.Spells.Q.range * Retarded.Misc.MaxRange:Value()).."", 20, textPos.x + 180, textPos.y - 10, Draw.Color(255, 255, 0, 10))
-   
-    if Retarded.Harass.AutoHarass:Value() == true then
+    if Retarded.Harass.AutoHarassQ:Value() == true then
     return Draw.Text("Harass Toggle: On", 20, textPos.x + 180, textPos.y + 10, Draw.Color(255, 255, 0, 10))
     else
      Draw.Text("Harass Toggle: Off", 20, textPos.x + 180, textPos.y + 10, Draw.Color(255, 255, 0, 10))
