@@ -376,29 +376,8 @@ function Blitzcrank:__init()
 	self:Menu()
 	Callback.Add("Tick", function() self:Tick() end)
 	Callback.Add("Draw", function() self:Draw() end)
-	Callback.Add("ProcessRecall", function(u,s) self:CountUpdate() end) --[[Test]]
-	Callback.Add("ProcessRecall", function(u,s) self:CountUpdateDone() end) --[[Test]]
-	ProcessSpellsLoad()
-	self.QHit = 0 --[[Test]]
-	self.CCount = false --[[Test]]
-	self.QTotal = 0 --[[Test]]
-	
+	ProcessSpellsLoad()	
 end
---[[Test]]
-function Blitzcrank:CountUpdate(unit,buff)
-	for _, Enemy in pairs(GetEnemyHeroes()) do
-	if unit.team ~= myHero.team and unit.type == myHero.type and Enemy:GetBuff(rocketGrab).name == "rocketgrab2" and self.CCount then
-		self.QHit = self.QHit + 1
-	end	
-end
-end
-function Blitzcrank:CountUpdateDone(unit,spell)
-	if unit.isMe and self.CCount and myHero:GetSpellData(_Q).name == "rocketGrab" then
-		self.QTotal = self.QTotal + 1
-	end
-end
-
---[[Test]]
 --------------------------------------------------------------------------------
 --[[Menu]]
 --------------------------------------------------------------------------------	
@@ -421,7 +400,7 @@ function Blitzcrank:Menu()
 
     Retarded.Harass:MenuElement({id = "HarassQ", name = "Use Q", value = true})
     Retarded.Harass:MenuElement({id = "HarassE", name = "Use E", value = true})
-    Retarded.Harass:MenuElement({id = "AutoHarassQ", name = "Harass Q Toggle", key = string.byte("H"), toggle = true})
+    Retarded.Harass:MenuElement({id = "AutoHarassQ", name = "Harass Q Toggle", key = string.byte("K"), toggle = true})
     Retarded.Harass:MenuElement({type = MENU, name = "WhiteList", id = "WhiteListQ", tooltip = "Grab only activated Targets!"})
     for K, Enemy in pairs(GetEnemyHeroes()) do
     Retarded.Harass.WhiteListQ:MenuElement({name = Enemy.charName, id = Enemy.charName, value = true, leftIcon = "http://ddragon.leagueoflegends.com/cdn/6.24.1/img/champion/"..Enemy.charName..".png"})
@@ -465,7 +444,7 @@ function Blitzcrank:Tick()
 	if myHero.dead then return end
 	ProcessSpellCallback()
 	self:KillSteal()
-    --self:AutoHarassQ()
+    self:AutoHarassQ()
 	local target = _G.SDK.TargetSelector:GetTarget(2000)
 
 	if target and _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_COMBO] then
@@ -544,22 +523,6 @@ function Blitzcrank:AutoHarassQ()
 			end
 		end
 end
---[[FIXX	
-function Blitzcrank:AutoHarassQ()
-	local HarassManaQ = Retarded.Harass.HarassManaQ:Value()
-	 local target = _G.SDK.TargetSelector:GetTarget(2000)
-    if target then 
-        if Retarded.Harass.AutoHarassQ:Value() and Ready(_Q) and Retarded.Harass.HarassQ:Value() and IsValidTarget(target, self.Spells.Q.range*Retarded.Misc.MaxRange:Value(), true, myHero.pos) and Retarded.Harass.WhiteListQ[target.charName]:Value() and (myHero.mana/myHero.maxMana >= HarassManaQ/100) then
-          local qPred = GetPred(target,math.huge,0.35 + Game.Latency()/1000)
-			local qPred2 = GetPred(target,math.huge,1)
-			if qPred and qPred2 and target:GetCollision(self.Spells.Q.width, self.Spells.Q.speed, self.Spells.Q.delay) == 0 then
-				if GetDistance(myHero.pos,qPred2) < self.Spells.Q.range*Retarded.Misc.MaxRange:Value() then
-					CastSpell(HK_Q, qPred)
-			end
-		end
-			end
-		end
-end]]
 --------------------------------------------------------------------------------
 --[[Killsteal]]
 --------------------------------------------------------------------------------	
