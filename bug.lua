@@ -1,7 +1,7 @@
 local RChamps = {"Blitzcrank"}
 if not table.contains(RChamps, myHero.charName) then print("" ..myHero.charName.. " Is Not Supported!") return end
 
-local Retarded = MenuElement({type = MENU, id = "Retarded", name = "Retarded - "..myHero.charName})
+local Retarded = MenuElement({type = MENU, id = "Retarded", name = "Retarded - "..myHero.charName, leftIcon = "http://ddragon.leagueoflegends.com/cdn/6.24.1/img/champion/"..myHero.charName..".png"})
 Retarded:MenuElement({type = MENU, id = "Combo", name = "Combo Settings"})
 Retarded:MenuElement({type = MENU, id = "Harass", name = "Harass Settings"})
 Retarded:MenuElement({type = MENU, id = "KillSteal", name = "Killsteal Settings"})
@@ -376,9 +376,8 @@ function Blitzcrank:__init()
 	self:Menu()
 	Callback.Add("Tick", function() self:Tick() end)
 	Callback.Add("Draw", function() self:Draw() end)
-	ProcessSpellsLoad()
+	ProcessSpellsLoad()	
 	self.QHit = 0
-	self.CCount = false
 	self.QTotal = 0
 end
 --------------------------------------------------------------------------------
@@ -442,13 +441,14 @@ function Blitzcrank:Menu()
 end
 --------------------------------------------------------------------------------
 --[[Tickt]]
---------------------------------------------------------------------------------
+--------------------------------------------------------------------------------	
 function Blitzcrank:Tick()
 	if myHero.dead then return end
 	ProcessSpellCallback()
-	self:GetQCast()
 	self:KillSteal()
     self:AutoHarassQ()
+    self:GetQCast()
+    self:GetQHit()
 	local target = _G.SDK.TargetSelector:GetTarget(2000)
 
 	if target and _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_COMBO] then
@@ -456,21 +456,49 @@ function Blitzcrank:Tick()
 	elseif target and _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_HARASS] then
 		self:Harass(target)
 	end
-
 end
 --------------------------------------------------------------------------------
 --[[Test]]
---------------------------------------------------------------------------------
-   function Blitzcrank:GetQCast()
+--------------------------------------------------------------------------------	
+    function Blitzcrank:GotBuff(unit, buffName)
+        if not unit then print("No Unit given @GotBuff") return false end
+        for i = 1, unit.buffCount do
+            local buff = unit:GetBuff(i)
+
+            if buff.count > 0 and buff.name == buffName then
+            	print(""..buff.count.."")
+                return true
+            end
+        end
+
+        return false
+    end
+
+    function Blitzcrank:GetQCast()
         if not self.QCasted then
             local lastTimeQcasted = (myHero:GetSpellData(_Q).castTime - myHero:GetSpellData(_Q).cd)
             if (lastTimeQcasted - Game.Timer() >= -0.1) then
+                self.QHitted = false
                 self.QCasted = true
                 self.QTotal = self.QTotal + 1
             end
         end
 
-        if Ready(_Q) then self.QCasted = false end
+        if Ready(_Q) then self.QCasted = false self.QHitted = true end
+    end
+
+    function Blitzcrank:GetQHit()
+        for K, target in pairs(GetEnemyHeroes()) do
+            if not self.QHitted and self.QCasted and self:GotBuff(target, "RocketGrab2") then
+                self.QHitted = true
+                self.QHit = self.QHit + 1
+                self.QCasted = false
+            end
+        end
+
+        DelayAction(function()
+            self.QHitted = true
+        end, self.Spells.Q.range/self.Spells.Q.speed)
     end
 --------------------------------------------------------------------------------
 --[[Combo]]
@@ -488,7 +516,7 @@ if Ready(_Q) and Retarded.Combo.ComboQ:Value() and Retarded.Combo.WhiteListQ[tar
 	local qPred2 = GetPred(target,math.huge,1)
 	if qPred and qPred2 and target:GetCollision(self.Spells.Q.width, self.Spells.Q.speed, self.Spells.Q.delay) == 0 then
 	if GetDistance(myHero.pos,qPred2) < self.Spells.Q.range*Retarded.Misc.MaxRange:Value() then
-			CastSpell(HK_Q, qPred)		
+			CastSpell(HK_Q, qPred)
 	end
 	end
 	end
@@ -597,7 +625,7 @@ end
 --------------------------------------------------------------------------------				
 function Blitzcrank:Draw()
 local QHitPos = myHero.pos:To2D()
-Draw.Text("Q Stats: "..(self.QHit).." hits / "..(self.QTotal).." total", 20, QHitPos.x + 100, QHitPos.y + 100, Draw.Color(255, 255, 0, 10))
+Draw.Text("Q Stats: "..tostring(self.QHit).." / "..tostring(self.QTotal).."", 20, QHitPos.x + 200, QHitPos.y + 200, Draw.Color(255, 255, 0, 10))
 
 if myHero.dead then return end
 	local ComboWMax = Retarded.Combo.ComboWMax:Value()
