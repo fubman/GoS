@@ -1,0 +1,223 @@
+local AiOA = MenuElement({type = MENU, id = "AiOA", name = "AiO Aware"})
+------------------------------------------------------------------------------------
+--[[TURRET]]
+------------------------------------------------------------------------------------
+AiOA:MenuElement({type = MENU, id = "Turret", name = "Turret"})
+AiOA.Turret:MenuElement({id = "Enabled", name = "Enable", value = true})
+AiOA.Turret:MenuElement({id = "AllyRange", name = "Ally Turret Range", value = true})
+AiOA.Turret:MenuElement({id = "EnemyRange", name = "Enemy Turret Range", value = true})
+AiOA.Turret:MenuElement({id = "PosX", name = "Pos X", value = 0, min = -500, max = 500, step = 5})
+AiOA.Turret:MenuElement({id = "PosY", name = "Pos Y", value = 0, min = -500, max = 500, step = 5})
+------------------------------------------------------------------------------------
+--[[COOLDOWNS]]
+------------------------------------------------------------------------------------
+AiOA:MenuElement({type = MENU, id = "CD", name = "Cooldowns"})
+AiOA.CD:MenuElement({id = "Enabled", name = "Enable", value = true})
+------------------------------------------------------------------------------------
+--[[CLASS]]
+------------------------------------------------------------------------------------
+class "AiOAware"
+------------------------------------------------------------------------------------
+--[[LOCAL]]
+------------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------------
+--[[__INIT]]
+------------------------------------------------------------------------------------
+function AiOAware:__init()
+	Callback.Add("Draw", function() self:DrawTurret() end)
+	Callback.Add("Draw", function() self:DrawCD() end)
+end
+------------------------------------------------------------------------------------
+--[[STUFF]]
+------------------------------------------------------------------------------------
+function AiOAware:TargetIsHero(networkID)
+local result = false
+for i = 1, Game.HeroCount() do
+	local hero = Game.Hero(i)
+	if hero.networkID == networkID then
+		result = true
+		end
+	end
+return result
+end
+
+function AiOAware:DrawLine3D(x,y,z,a,b,c,width,col)
+  local p1 = Vector(x,y,z):To2D()
+  local p2 = Vector(a,b,c):To2D()
+  Draw.Line(p1.x, p1.y, p2.x, p2.y, width, col)
+end
+
+function AiOAware:DrawRectangleOutline(x, y, z, x1, y1, z1, width, col)
+  local startPos = Vector(x,y,z)
+  local endPos = Vector(x1,y1,z1)
+  local c1 = startPos+Vector(Vector(endPos)-startPos):Perpendicular():Normalized()*width
+  local c2 = startPos+Vector(Vector(endPos)-startPos):Perpendicular2():Normalized()*width
+  local c3 = endPos+Vector(Vector(startPos)-endPos):Perpendicular():Normalized()*width
+  local c4 = endPos+Vector(Vector(startPos)-endPos):Perpendicular2():Normalized()*width
+  self:DrawLine3D(c1.x,c1.y,c1.z,c2.x,c2.y,c2.z,2,col)
+  self:DrawLine3D(c2.x,c2.y,c2.z,c3.x,c3.y,c3.z,2,col)
+  self:DrawLine3D(c3.x,c3.y,c3.z,c4.x,c4.y,c4.z,2,col)
+  self:DrawLine3D(c1.x,c1.y,c1.z,c4.x,c4.y,c4.z,2,col)
+end
+------------------------------------------------------------------------------------
+--[[DRAW TURRET]]
+------------------------------------------------------------------------------------
+function AiOAware:DrawTurret()
+	local TREN = AiOA.Turret.Enabled:Value()
+	local TRAR = AiOA.Turret.AllyRange:Value()
+	local TRER = AiOA.Turret.EnemyRange:Value()
+	local TRDT = 2000
+	local mHTx = AiOA.Turret.PosX:Value()
+	local mHTy = AiOA.Turret.PosY:Value()
+	local mHText = myHero.pos:To2D()
+	local mH3d = myHero.pos
+if not TREN then return end
+for i = 1, Game.TurretCount() do
+	local turret = Game.Turret(i)
+	local range = (turret.boundingRadius + 750 + myHero.boundingRadius / 2)
+	if turret.valid then
+		local max_distance = range + TRDT
+		if turret.distance <= max_distance then
+			if turret.isEnemy then
+				if TRER then
+					local alpha = turret.distance < range and 255 or (255 - 255 * (turret.distance-range) / TRDT)
+
+					if turret.targetID == myHero.networkID then
+						Draw.Circle(turret.pos,range, 10, Draw.Color(alpha, 255, 0, 0)); --red, turret target myHero
+						--Draw.Text("Turret Aggro", 20, mHText.x, mHText.y, Draw.Color(255, 255, 0, 10))
+
+					elseif turret.targetID == 0 then
+						Draw.Circle(turret.pos,range, 2, Draw.Color(alpha, 255, 0, 0)); --red, turret no target
+						Draw.Text("Turret Aggro", 20, mHText.x + mHTx, mHText.y + mHTy, Draw.Color(255, 255, 0, 10))
+
+					elseif self:TargetIsHero(turret.targetID) then
+						Draw.Circle(turret.pos,range, 10, Draw.Color(alpha, 0, 255, 0)); --green, turret target Ally
+						--Draw.Text("Turret Aggro", 20, mHText.x, mHText.y, Draw.Color(255, 255, 0, 10))
+
+					else
+						Draw.Circle(turret.pos,range, 3, Draw.Color(alpha, 0, 255, 0)); --turret target minion
+						--Draw.Text("Turret Aggro", 20, mHText.x, mHText.y, Draw.Color(255, 255, 0, 10))
+
+					end
+				end
+			elseif TRAR then
+				local alpha = turret.distance < range and 255 or (255 - 255 * (turret.distance-range) / TRDT)
+				Draw.Circle(turret.pos,range, 0, Draw.Color(alpha, 0, 0x75, 255)); --blue ally turret
+				end
+			end
+		end
+	end
+end
+------------------------------------------------------------------------------------
+--[[DRAW CD]]
+------------------------------------------------------------------------------------
+function AiOAware:DrawCD()
+local CDEN = AiOA.CD.Enabled:Value()
+
+local mHText = myHero.pos:To2D()
+
+local CDSizeW = 90
+local CDSizeH = 20
+local CDFillerW = 20
+local CDFillerH = 10
+local CDFillerSuMMW = 42
+local CDFillerSuMMH = 4
+
+
+local qData = myHero:GetSpellData(_Q);
+local wData = myHero:GetSpellData(_W);
+local eData = myHero:GetSpellData(_E);
+local rData = myHero:GetSpellData(_R);
+local s1Data = myHero:GetSpellData(4)
+local s2Data = myHero:GetSpellData(5)
+
+local ColorG = Draw.Color(100, 0, 255, 0)
+local ColorR = Draw.Color(100, 255, 0, 10)
+local ColorB = Draw.Color(100, 0, 0, 0)
+
+
+local posX = 40;
+local posY = -165;
+
+if not CDEN then return end
+
+Draw.Rect(mHText.x-posX, mHText.y+posY, CDSizeW, CDSizeH, ColorB); --BAR
+
+--[[SUMM1]]
+if s1Data.currentCd > 0 then 
+Draw.Rect(mHText.x-posX+2, mHText.y+posY+14, CDFillerSuMMW, CDFillerSuMMH, ColorR);
+Draw.Text(""..tostring(math.ceil(s1Data.currentCd)).."", 10, mHText.x-posX-20, mHText.y+posY+8)
+else 
+Draw.Rect(mHText.x-posX+2, mHText.y+posY+14, CDFillerSuMMW, CDFillerSuMMH, ColorG);
+end
+--[[SUMM2]]
+if s2Data.currentCd > 0 then 
+Draw.Rect(mHText.x-posX+46, mHText.y+posY+14, CDFillerSuMMW, CDFillerSuMMH, ColorR);
+Draw.Text(""..tostring(math.ceil(s2Data.currentCd)).."", 10, mHText.x-posX+95, mHText.y+posY+8)
+else
+Draw.Rect(mHText.x-posX+46, mHText.y+posY+14, CDFillerSuMMW, CDFillerSuMMH, ColorG);
+end
+--[[Q]]
+if qData.level > 0 then 
+if qData.currentCd > 0 then 
+Draw.Rect(mHText.x-posX+2, mHText.y+posY+2, CDFillerW, CDFillerH, ColorR)
+Draw.Text(""..tostring(math.ceil(qData.currentCd)).."", 10, mHText.x-posX+2+6, mHText.y+posY+1)
+else 
+Draw.Rect(mHText.x-posX+2, mHText.y+posY+2, CDFillerW, CDFillerH, ColorG)
+Draw.Text("Q", 10, mHText.x-posX+2+6, mHText.y+posY+1)
+end
+else
+	Draw.Rect(mHText.x-posX+2, mHText.y+posY+2, CDFillerW, CDFillerH, ColorR)
+	Draw.Text("-", 10, mHText.x-posX+2+6, mHText.y+posY+1)
+end
+--[[W]]
+if wData.level > 0 then 
+if wData.currentCd > 0 then 
+Draw.Rect(mHText.x-posX+2+22, mHText.y+posY+2, CDFillerW, CDFillerH, ColorR)
+Draw.Text(""..tostring(math.ceil(wData.currentCd)).."", 10, mHText.x-posX+22+8, mHText.y+posY+1)
+else 
+Draw.Rect(mHText.x-posX+2+22, mHText.y+posY+2, CDFillerW, CDFillerH, ColorG)
+Draw.Text("W", 10, mHText.x-posX+22+8, mHText.y+posY+1) 
+end
+else
+	Draw.Rect(mHText.x-posX+2+22, mHText.y+posY+2, CDFillerW, CDFillerH, ColorR)
+	Draw.Text("-", 10, mHText.x-posX+22+8, mHText.y+posY+1) 
+end
+--[[E]]
+if eData.level > 0 then 
+if eData.currentCd > 0 then 
+Draw.Rect(mHText.x-posX+2+44, mHText.y+posY+2, CDFillerW, CDFillerH, ColorR)
+Draw.Text(""..tostring(math.ceil(eData.currentCd)).."", 10, mHText.x-posX+44+10, mHText.y+posY+1) 
+else 
+Draw.Rect(mHText.x-posX+2+44, mHText.y+posY+2, CDFillerW, CDFillerH, ColorG)
+Draw.Text("E", 10, mHText.x-posX+44+10, mHText.y+posY+1)
+end
+else
+	Draw.Rect(mHText.x-posX+2+44, mHText.y+posY+2, CDFillerW, CDFillerH, ColorR)
+	Draw.Text("-", 10, mHText.x-posX+44+10, mHText.y+posY+1)
+end
+--[[R]]
+if rData.level > 0 then 
+if rData.currentCd > 0 then 
+Draw.Rect(mHText.x-posX+2+66, mHText.y+posY+2, CDFillerW, CDFillerH, ColorR)
+Draw.Text(""..tostring(math.ceil(rData.currentCd)).."", 10, mHText.x-posX+66+8, mHText.y+posY+1) 
+else 
+Draw.Rect(mHText.x-posX+2+66, mHText.y+posY+2, CDFillerW, CDFillerH, ColorG)
+Draw.Text("R", 10, mHText.x-posX+66+8, mHText.y+posY+1)
+end
+else
+	Draw.Rect(mHText.x-posX+2+66, mHText.y+posY+2, CDFillerW, CDFillerH, ColorR)
+	Draw.Text("-", 10, mHText.x-posX+66+8, mHText.y+posY+1)
+end
+
+
+
+--Draw.Text("E", 10, mHText.x-posX+44+8, mHText.y+posY+1) -- E
+--Draw.Text("R", 10, mHText.x-posX+66+8, mHText.y+posY+1) -- R 
+
+end
+------------------------------------------------------------------------------------
+--[[ONLOAD]]
+------------------------------------------------------------------------------------
+function OnLoad() AiOAware() end
